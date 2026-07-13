@@ -9,13 +9,13 @@ import (
 )
 
 type State struct {
-	Db  *database.Queries
-	Cfg *c.Config
+	CfgUser *c.UserConfig
+	CfgApi  *c.ApiConfig
 }
 
 func AddAdmin(state *State, passwordhash string) {
-	params := database.CreateUserParams{Name: state.Cfg.User, PasswordHash: passwordhash}
-	user, err := state.Db.CreateUser(context.Background(), params)
+	params := database.CreateUserParams{Name: state.CfgUser.User, PasswordHash: passwordhash}
+	user, err := state.CfgApi.Database.CreateUser(context.Background(), params)
 	if err != nil {
 		log.Fatal(err)
 	}

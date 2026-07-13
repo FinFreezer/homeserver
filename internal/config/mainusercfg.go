@@ -1,10 +1,10 @@
 package config
 
-type Config struct {
+type UserConfig struct {
 	Db_url string
 	User   string
 }
 
-func Read(dbURL string) *Config {
-	return &Config{Db_url: dbURL, User: "Fin"}
+func Read(dbURL, user string) *UserConfig {
+	return &UserConfig{Db_url: dbURL, User: user}
 }
