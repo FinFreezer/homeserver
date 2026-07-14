@@ -4,18 +4,12 @@ import (
 	"context"
 	"log"
 
-	c "github.com/finfreezer/homeserver/internal/config"
 	"github.com/finfreezer/homeserver/internal/database"
 )
 
-type State struct {
-	CfgUser *c.UserConfig
-	CfgApi  *c.ApiConfig
-}
-
-func AddAdmin(state *State, passwordhash string) {
-	params := database.CreateUserParams{Name: state.CfgUser.User, PasswordHash: passwordhash}
-	user, err := state.CfgApi.Database.CreateUser(context.Background(), params)
+func AddAdmin(db *database.Queries, username, passwordhash string) {
+	params := database.CreateUserParams{Name: username, PasswordHash: passwordhash}
+	user, err := db.CreateUser(context.Background(), params)
 	if err != nil {
 		log.Fatal(err)
 	}
