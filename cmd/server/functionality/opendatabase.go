@@ -4,18 +4,17 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"sync/atomic"
 
 	"github.com/finfreezer/homeserver/internal/database"
 	"github.com/joho/godotenv"
 )
 
 type ApiConfig struct {
-	FileserverHits atomic.Int32
-	Database       *database.Queries
-	Platform       string
-	Secret         string
-	ApiKey         string
+	Database   *database.Queries
+	Platform   string
+	Secret     string
+	ApiKey     string
+	Authorized bool
 }
 
 func OpenDatabase() (*ApiConfig, error) {
@@ -32,11 +31,11 @@ func OpenDatabase() (*ApiConfig, error) {
 	}
 	dbQueries := database.New(db)
 	newApiConf := ApiConfig{
-		FileserverHits: atomic.Int32{},
-		Database:       dbQueries,
-		Platform:       platform,
-		Secret:         secret,
-		ApiKey:         ApiKey,
+		Database:   dbQueries,
+		Platform:   platform,
+		Secret:     secret,
+		ApiKey:     ApiKey,
+		Authorized: false,
 	}
 	return &newApiConf, nil
 }

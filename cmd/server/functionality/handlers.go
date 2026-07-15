@@ -48,5 +48,6 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseMsg := fmt.Sprintf("Succesfully logged in as %s\n", dbUser.Name)
+	a.Authorized = true
 	respondWithJSON(w, http.StatusOK, response{Message: responseMsg})
 }

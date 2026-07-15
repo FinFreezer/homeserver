@@ -32,8 +32,11 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	pwHash, err := auth.CreatePasswordHash(args[2])
-	pg.AddAdmin(newApiConf.Database, args[1], pwHash) //Username + hashed password
+	pwHash, err := auth.CreatePasswordHash(args[2]) //Username + hashed password
+	if ok := pg.AddAdmin(newApiConf.Database, args[1], pwHash, args[2]); !ok {
+		log.Println("Error logging in to the server.")
+		os.Exit(1)
+	}
 	newMux := http.NewServeMux()
 	newMux.HandleFunc("POST /login", newApiConf.Login)
 	newServer := http.Server{Addr: ":8080", Handler: newMux}

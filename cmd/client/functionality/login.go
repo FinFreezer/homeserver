@@ -30,11 +30,7 @@ func login(cfg *c.UserConfig) bool {
 		return false
 	}
 	fullUrl := os.Getenv("DST_SERVER") + "/login"
-	log.Printf("Making a POST request to %s...\n", fullUrl)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
+	log.Printf("Making a POST request to %s\n", fullUrl)
 	resp, err := http.Post(fullUrl, "application/json", bytes.NewReader(rqst))
 	if err != nil {
 		log.Println(err)
