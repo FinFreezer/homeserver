@@ -8,10 +8,10 @@ import (
 
 type handlerFunc func(cfg *c.UserConfig) bool
 
-func authorizedMiddleware(conf *c.UserConfig, dst handlerFunc) (handlerFunc, error) {
+func authorizedMiddleware(conf *c.UserConfig, dst handlerFunc) (bool, error) {
 	if conf.Authorized {
-		return dst, nil
+		return dst(conf), nil
 	} else {
-		return nil, errors.New("Login required.")
+		return false, errors.New("Login required.")
 	}
 }

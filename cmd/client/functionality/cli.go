@@ -27,7 +27,17 @@ func MainCLI() {
 			args[i] = strings.TrimSpace(args[i])
 		}
 		if cmd, ok := commands[args[0]]; ok {
-			cmd(newConf)
+			if len(args) > 1 {
+				newConf.Args = args[1:]
+			}
+			success, err := authorizedMiddleware(newConf, cmd)
+			newConf.Args = []string{} //Clear old args
+			if err != nil {
+				fmt.Println(err)
+			}
+			if !success {
+				fmt.Println("Something went wrong.")
+			}
 		} else {
 			fmt.Println("Currently unknown command.")
 		}

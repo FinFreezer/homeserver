@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/finfreezer/homeserver/internal/auth"
 )
 
-type loginParameters struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-}
-
-type response struct {
-	Message string `json:"reply"`
-}
-
 func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
+	type loginParameters struct {
+		Name     string `json:"name"`
+		Password string `json:"password"`
+	}
+
+	type response struct {
+		Message string `json:"reply"`
+	}
+
 	log.Println("Received login request.")
 	decoder := json.NewDecoder(r.Body)
 	defer r.Body.Close()
@@ -50,4 +51,33 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	responseMsg := fmt.Sprintf("Succesfully logged in as %s\n", dbUser.Name)
 	a.Authorized = true
 	respondWithJSON(w, http.StatusOK, response{Message: responseMsg})
+}
+
+func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
+	type FileInfo struct {
+		Name  string `json:"name"`
+		IsDir bool   `json:"isDir"`
+	}
+	type ListDirResponse struct {
+		Message string     `json:"reply"`
+		Files   []FileInfo `json:"directory"`
+	}
+	fullPath := "./assets/" + r.PathValue("path")
+	log.Println("Received requrest to list contents.")
+	itemList, err := os.ReadDir(fullPath)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, 400, "Issue finding directory.\n", err)
+		return
+	}
+	result := make([]FileInfo, len(itemList))
+	for i, item := range itemList {
+		log.Println(item.Name())
+		result[i] = FileInfo{
+			Name:  item.Name(),
+			IsDir: item.IsDir(),
+		}
+	}
+	msg := fmt.Sprintf("Listing files in %s:\n", fullPath)
+	respondWithJSON(w, http.StatusOK, ListDirResponse{Message: msg, Files: result})
 }

@@ -39,6 +39,7 @@ func main() {
 	}
 	newMux := http.NewServeMux()
 	newMux.HandleFunc("POST /login", newApiConf.Login)
+	newMux.HandleFunc("GET /listdir/{path...}", newApiConf.ListContents)
 	newServer := http.Server{Addr: ":8080", Handler: newMux}
 	err = newServer.ListenAndServe()
 	if err != nil {
