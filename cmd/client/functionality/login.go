@@ -39,7 +39,17 @@ func login(cfg *c.UserConfig) bool {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 	reply := responseParams{}
-	err = decoder.Decode(&reply)
-	log.Printf("%+v", reply)
-	return true
+	if err = decoder.Decode(&reply); err != nil {
+		log.Println(err)
+		return false
+	}
+	if 200 <= resp.StatusCode && resp.StatusCode < 300 {
+		log.Printf("%s", reply.Message)
+		cfg.Authorized = true
+		return true
+	} else {
+		log.Printf("%s", reply.Error)
+		cfg.Authorized = false
+		return false
+	}
 }

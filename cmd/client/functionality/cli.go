@@ -9,7 +9,10 @@ import (
 	c "github.com/finfreezer/homeserver/internal/config"
 )
 
+var commands = make(map[string]handlerFunc)
+
 func MainCLI() {
+	initCommands()
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("\nEnter a valid command.\n")
@@ -19,7 +22,7 @@ func MainCLI() {
 			fmt.Println("Error reading input.")
 		}
 		args := strings.Split(input, " ")
-		for i, _ := range args {
+		for i := range args {
 			args[i] = strings.TrimSpace(args[i])
 		}
 		if args[0] == "login" && len(args) == 3 {
@@ -34,4 +37,9 @@ func MainCLI() {
 			fmt.Println("Currently unknown command.")
 		}
 	}
+}
+
+func initCommands() {
+	commands["login"] = login
+	commands["list"] = listcontents
 }
