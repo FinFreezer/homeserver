@@ -54,6 +54,7 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
+
 	type FileInfo struct {
 		Name  string `json:"name"`
 		IsDir bool   `json:"isDir"`
@@ -62,6 +63,7 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		Message string     `json:"reply"`
 		Files   []FileInfo `json:"directory"`
 	}
+
 	fullPath := "./assets/" + r.PathValue("path")
 	log.Println("Received requrest to list contents.")
 	itemList, err := os.ReadDir(fullPath)
