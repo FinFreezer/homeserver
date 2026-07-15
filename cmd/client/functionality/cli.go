@@ -14,6 +14,7 @@ var commands = make(map[string]handlerFunc)
 func MainCLI() {
 	initCommands()
 	reader := bufio.NewReader(os.Stdin)
+	newConf := initLogin(reader)
 	for {
 		fmt.Print("\nEnter a valid command.\n")
 		fmt.Print(">")
@@ -25,14 +26,8 @@ func MainCLI() {
 		for i := range args {
 			args[i] = strings.TrimSpace(args[i])
 		}
-		if args[0] == "login" && len(args) == 3 {
-			newConf := c.Read(args[1], args[2])
-			if login(newConf) {
-				fmt.Println("Login success.")
-			} else {
-				fmt.Println("Login unsuccesful.")
-				break
-			}
+		if cmd, ok := commands[args[0]]; ok {
+			cmd(newConf)
 		} else {
 			fmt.Println("Currently unknown command.")
 		}
@@ -40,6 +35,33 @@ func MainCLI() {
 }
 
 func initCommands() {
-	commands["login"] = login
 	commands["list"] = listcontents
+}
+
+func initLogin(reader *bufio.Reader) *c.UserConfig {
+	for {
+		fmt.Print("\nPlease enter login credentials or 'quit': ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input")
+		}
+		args := strings.Split(input, " ")
+		for i := range args {
+			args[i] = strings.TrimSpace(args[i])
+		}
+		if args[0] == "quit" {
+			os.Exit(1)
+		}
+		if len(args) == 2 {
+			newConf := c.Read(args[0], args[1])
+			if login(newConf) {
+				fmt.Println("Login successful.")
+				return newConf
+			} else {
+				fmt.Println("Login unsuccesful. Please try again or 'quit'.")
+			}
+		} else {
+			fmt.Println("Currently unknown command, please login.")
+		}
+	}
 }
