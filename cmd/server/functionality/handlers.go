@@ -60,26 +60,24 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		IsDir bool   `json:"isDir"`
 	}
 	type ListDirResponse struct {
-		Message string     `json:"reply"`
-		Files   []FileInfo `json:"directory"`
+		Message string   `json:"reply"`
+		Files   FileNode `json:"directory"`
 	}
 
 	fullPath := "./assets/" + r.PathValue("path")
-	log.Println("Received requrest to list contents.")
-	itemList, err := os.ReadDir(fullPath)
-	if err != nil {
+	log.Println("Received a request to list contents.")
+	fi, err := os.Stat(fullPath)
+	if err != nil || !fi.IsDir() {
 		log.Println(err)
 		respondWithError(w, 400, "Issue finding directory.\n", err)
 		return
 	}
-	result := make([]FileInfo, len(itemList))
-	for i, item := range itemList {
-		log.Println(item.Name())
-		result[i] = FileInfo{
-			Name:  item.Name(),
-			IsDir: item.IsDir(),
-		}
+	resultTree, err := buildFileTree(fullPath)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, 500, "Issue building directory tree-view.\n", err)
+		return
 	}
 	msg := fmt.Sprintf("Listing files in %s:\n", fullPath)
-	respondWithJSON(w, http.StatusOK, ListDirResponse{Message: msg, Files: result})
+	respondWithJSON(w, http.StatusOK, ListDirResponse{Message: msg, Files: resultTree})
 }

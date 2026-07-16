@@ -14,6 +14,10 @@ import (
 
 func main() {
 	args := os.Args
+	if len(args) < 2 {
+		fmt.Println("Please input login credentials.")
+		os.Exit(1)
+	}
 	if args[1] == "delete" {
 		newApiConf, err := pg.OpenDatabase()
 		if err != nil {

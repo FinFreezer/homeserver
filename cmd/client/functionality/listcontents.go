@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 
+	pg "github.com/finfreezer/homeserver/cmd/server/functionality"
 	c "github.com/finfreezer/homeserver/internal/config"
 	"github.com/joho/godotenv"
 )
@@ -18,8 +19,9 @@ type FileInfo struct {
 }
 
 type ListDirResponse struct {
-	Message string     `json:"reply"`
-	Files   []FileInfo `json:"directory"`
+	Message string      `json:"reply"`
+	Files   pg.FileNode `json:"directory"`
+	Error   string      `json:"error,omitempty"`
 }
 
 func listcontents(cfg *c.UserConfig) bool {
@@ -41,17 +43,34 @@ func listcontents(cfg *c.UserConfig) bool {
 			return false
 		}
 		fmt.Println(newResp.Message)
-		for _, item := range newResp.Files {
-			if item.IsDir {
-				fmt.Printf("D - %s\n", item.Name)
-			} else {
-				fmt.Printf("F - %s\n", item.Name)
-			}
-		}
+		fmt.Println("Directory tree:")
+		printContentTree(newResp.Files, 0)
 		return true
 	} else {
-		log.Println("Something went wrong.")
+		newResp := ListDirResponse{}
+		decoder := json.NewDecoder(resp.Body)
+		if err = decoder.Decode(&newResp); err != nil {
+			log.Println(err)
+			return false
+		}
+		log.Printf("Something went wrong: %s\n", newResp.Error)
 		return false
 	}
+}
 
+func printContentTree(Node pg.FileNode, depth int) {
+	if !Node.IsDir {
+		for i := 0; i < depth; i++ {
+			fmt.Print("\t")
+		}
+		fmt.Printf("F - %s\n", Node.Name)
+	} else {
+		for i := 0; i < depth; i++ {
+			fmt.Print("\t")
+		}
+		fmt.Printf("D - %s\n", Node.Name)
+		for _, child := range Node.Children {
+			printContentTree(child, depth+1)
+		}
+	}
 }
