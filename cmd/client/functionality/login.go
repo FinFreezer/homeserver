@@ -12,25 +12,34 @@ import (
 )
 
 type loginParameters struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name      string `json:"name"`
+	Password  string `json:"password"`
+	WithToken bool   `json:"withToken"`
+	Token     string `json:"token,omitempty"`
 }
 
 type responseParams struct {
 	Message string `json:"reply"`
-	Error   string `json:"error"`
+	Token   string `json:"token,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
+// Todo: refactor to using client with newRequest and .Do()
 func login(cfg *c.UserConfig) bool {
 	godotenv.Load()
-	params := loginParameters{cfg.User, cfg.Password}
+	params := loginParameters{Name: cfg.User, WithToken: true, Token: cfg.Token}
+	if len(cfg.Args) > 1 {
+		cfg.User = cfg.Args[0]
+		cfg.Password = cfg.Args[1]
+		params = loginParameters{Name: cfg.User, WithToken: false, Password: cfg.Password, Token: ""}
+	}
 	rqst, err := json.Marshal(params)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
 	fullUrl := os.Getenv("DST_SERVER") + "/login"
-	log.Printf("Making a POST request to %s\n", fullUrl)
+	log.Printf("Making a POST request to %s with Tokenstatus: %v\n", fullUrl, params.WithToken)
 	resp, err := http.Post(fullUrl, "application/json", bytes.NewReader(rqst))
 	if err != nil {
 		log.Println(err)
@@ -45,7 +54,14 @@ func login(cfg *c.UserConfig) bool {
 	}
 	if 200 <= resp.StatusCode && resp.StatusCode < 300 {
 		log.Printf("%s", reply.Message)
+		cfg.Token = reply.Token
 		cfg.Authorized = true
+		if cfg.Token != "" {
+			envMap := map[string]string{"CLI_TOKEN": cfg.Token, "CLI_USER": cfg.User}
+			if err := godotenv.Write(envMap, ".env.local"); err != nil {
+				log.Println(err)
+			}
+		}
 		return true
 	} else {
 		log.Printf("%s", reply.Error)

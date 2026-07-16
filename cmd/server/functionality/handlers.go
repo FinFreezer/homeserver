@@ -7,18 +7,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
+	"github.com/finfreezer/homeserver/internal/database"
 )
 
 func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	type loginParameters struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
+		Name      string `json:"name"`
+		Password  string `json:"password"`
+		WithToken bool   `json:"withToken"`
+		Token     string `json:"token,omitempty"`
 	}
 
 	type response struct {
 		Message string `json:"reply"`
+		Token   string `json:"token,omitempty"`
 	}
 
 	log.Println("Received login request.")
@@ -31,26 +36,47 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Couldn't decode parameters", err)
 		return
 	}
+	if params.WithToken {
+		userName, err := auth.ValidateJWT(params.Token, a.Secret)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError,
+				"Unexpected validation error. Token may be expired, please login.",
+				err,
+			)
+			return
+		}
+		dbUser, err := a.Database.FindUser(context.Background(), userName)
+		if err != nil {
+			respondWithError(w, http.StatusUnauthorized, "Couldn't find user.", err)
+			return
+		}
+		responseMsg := fmt.Sprintf("Succesfully logged in as %s\n", dbUser.Name)
+		a.Authorized = true
+		respondWithJSON(w, http.StatusOK, response{Message: responseMsg})
 
-	dbUser, err := a.Database.FindUser(context.Background(), params.Name)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't find user.", err)
-		return
-	}
+	} else {
+		dbUser, err := a.Database.FindUser(context.Background(), params.Name)
+		if err != nil {
+			respondWithError(w, http.StatusUnauthorized, "Couldn't find user.", err)
+			return
+		}
 
-	match, err := auth.CheckPassword(params.Password, dbUser.PasswordHash)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Unexpected error.", err)
-		return
+		match, err := auth.CheckPassword(params.Password, dbUser.PasswordHash)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Unexpected error.", err)
+			return
+		}
+		if !match {
+			respondWithError(w, http.StatusUnauthorized, "Incorrect password.", err)
+			return
+		}
+		accessToken, err := auth.MakeJWT(dbUser.Name, a.Secret, time.Hour*24*7)
+		responseMsg := fmt.Sprintf("Succesfully logged in as %s\n", dbUser.Name)
+		params := database.UpdateUserTokenParams{Authtoken: accessToken, Name: dbUser.Name}
+		a.Database.UpdateUserToken(context.Background(), params)
+		a.Authorized = true
+		respondWithJSON(w, http.StatusOK, response{Message: responseMsg, Token: accessToken})
 	}
-	if !match {
-		respondWithError(w, http.StatusUnauthorized, "Incorrect password.", err)
-		return
-	}
-
-	responseMsg := fmt.Sprintf("Succesfully logged in as %s\n", dbUser.Name)
-	a.Authorized = true
-	respondWithJSON(w, http.StatusOK, response{Message: responseMsg})
 }
 
 func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {

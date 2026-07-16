@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	c "github.com/finfreezer/homeserver/internal/config"
+	"github.com/joho/godotenv"
 )
 
 var commands = make(map[string]handlerFunc)
@@ -14,7 +15,16 @@ var commands = make(map[string]handlerFunc)
 func MainCLI() {
 	initCommands()
 	reader := bufio.NewReader(os.Stdin)
-	newConf := initLogin(reader)
+	newConf := &c.UserConfig{}
+	if err := godotenv.Load(".env.local"); err != nil {
+		fmt.Println("No login session found, please enter credentials.")
+		newConf = initLogin(reader)
+	} else {
+		newConf.User = os.Getenv("CLI_USER")
+		newConf.Token = os.Getenv("CLI_TOKEN")
+		login(newConf)
+	}
+
 	for {
 		fmt.Print("\nEnter a valid command.\n")
 		fmt.Print(">")
@@ -26,7 +36,18 @@ func MainCLI() {
 		for i := range args {
 			args[i] = strings.TrimSpace(args[i])
 		}
-		if cmd, ok := commands[args[0]]; ok {
+		if args[0] == "login" {
+			cmd := commands["login"]
+			if len(args) > 1 {
+				newConf.Args = args[1:]
+			}
+			success := cmd(newConf)
+			newConf.Args = []string{}
+			if !success {
+				fmt.Println("Something went wrong.")
+			}
+
+		} else if cmd, ok := commands[args[0]]; ok {
 			if len(args) > 1 {
 				newConf.Args = args[1:]
 			}
@@ -46,9 +67,11 @@ func MainCLI() {
 
 func initCommands() {
 	commands["list"] = listcontents
+	commands["login"] = login
 }
 
 func initLogin(reader *bufio.Reader) *c.UserConfig {
+
 	for {
 		fmt.Print("\nPlease enter login credentials or 'quit': ")
 		input, err := reader.ReadString('\n')

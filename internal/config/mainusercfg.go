@@ -4,6 +4,7 @@ type UserConfig struct {
 	User       string
 	Password   string
 	Authorized bool
+	Token      string
 	Args       []string
 }
 
