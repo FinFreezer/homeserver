@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -106,4 +107,31 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 	}
 	msg := fmt.Sprintf("Listing files in %s:\n", fullPath)
 	respondWithJSON(w, http.StatusOK, ListDirResponse{Message: msg, Files: resultTree})
+}
+
+func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
+	fullPath := "./assets/" + r.PathValue("path")
+	log.Println("Received a request to stream.")
+	fi, err := os.Stat(fullPath)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, 400, "Couldn't reach file.\n", err)
+		return
+	}
+	if fi.IsDir() {
+		respondWithError(w, 400, "Can't stream a directory.\n", err)
+		return
+	}
+	file, err := os.Open(fullPath)
+	if err != nil {
+		respondWithError(w, 500, "Error opening file.\n", err)
+		return
+	}
+	defer file.Close()
+	w.Header().Set("Content-Type", "video/mp4")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	maxBytesPerWrite := 5 << 20
+
+	io.CopyN(w, file, int64(maxBytesPerWrite))
 }

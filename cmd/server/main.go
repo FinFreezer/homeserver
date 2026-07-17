@@ -44,8 +44,12 @@ func main() {
 	newMux := http.NewServeMux()
 	newMux.HandleFunc("POST /login", newApiConf.Login)
 	newMux.HandleFunc("GET /listdir/{path...}", newApiConf.ListContents)
-	newServer := http.Server{Addr: ":8080", Handler: newMux}
-	err = newServer.ListenAndServe()
+	newMux.HandleFunc("GET /stream/{path...}", newApiConf.StreamVideo)
+	//newServer := http.Server{Addr: ":8080", Handler: newMux}
+	newServer := http.FileServer(http.Dir("./cmd/server"))
+	newMux.Handle("/", newServer)
+	//err = newServer.ListenAndServe()
+	http.ListenAndServe(":12000", newMux)
 	if err != nil {
 		log.Fatal(err)
 	}
