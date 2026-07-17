@@ -85,8 +85,8 @@ func initLogin(reader *bufio.Reader) *c.UserConfig {
 		if args[0] == "quit" {
 			os.Exit(1)
 		}
-		if len(args) == 2 {
-			newConf := c.Read(args[0], args[1])
+		if len(args) > 1 {
+			newConf := &c.UserConfig{Args: args}
 			if login(newConf) {
 				fmt.Println("Login successful.")
 				return newConf
