@@ -133,5 +133,12 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	maxBytesPerWrite := 5 << 20
 
-	io.CopyN(w, file, int64(maxBytesPerWrite))
+	for {
+		_, err = io.CopyN(w, file, int64(maxBytesPerWrite))
+		if err != nil {
+			log.Println(err)
+			break
+		}
+	}
+
 }
