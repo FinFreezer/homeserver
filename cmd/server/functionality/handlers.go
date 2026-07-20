@@ -131,14 +131,36 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "video/mp4")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	maxBytesPerWrite := 5 << 20
-
-	for {
-		_, err = io.CopyN(w, file, int64(maxBytesPerWrite))
-		if err != nil {
+	w.Header().Set("Accept-Ranges", "bytes")
+	//http.ServeContent(w, r, file.Name(), fi.ModTime(), file) Ready method.
+	w.WriteHeader(206)
+	rangeHeader := r.Header.Get("Range")
+	if rangeHeader != "" {
+		lastChunk, err, _ := readByteRange(file, rangeHeader, w)
+		if err != nil && err != io.EOF {
+			w.Write(lastChunk)
 			log.Println(err)
-			break
+			return
+		} else {
+			w.Write(lastChunk)
+			return
+		}
+
+	} else {
+		maxBytesPerWrite := 5 << 20
+		writeData := make([]byte, maxBytesPerWrite)
+		var offsetN int64 = 0
+
+		for {
+			time.Sleep(time.Millisecond * 200)
+			nFile, err := file.ReadAt(writeData, offsetN)
+			offsetN += int64(nFile)
+			//_, err = io.Copy(writeBuffer, file)
+			_, err = w.Write(writeData[:nFile])
+			if err != nil {
+				log.Println(err)
+				break
+			}
 		}
 	}
-
 }
