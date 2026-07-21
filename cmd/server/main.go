@@ -49,6 +49,7 @@ func main() {
 	newServer := http.FileServer(http.Dir("./cmd/server"))
 	newMux.Handle("/", newServer)
 	//err = newServer.ListenAndServe()
+	log.Println("Listening and Serving on port :12000")
 	http.ListenAndServe(":12000", newMux)
 	if err != nil {
 		log.Fatal(err)

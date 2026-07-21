@@ -136,36 +136,41 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	//http.ServeContent(w, r, file.Name(), fi.ModTime(), file) Ready method.
 	rangeHeader := r.Header.Get("Range")
 	if rangeHeader != "" {
-		lastChunk, err, code := readByteRange(file, rangeHeader, w)
+		err, code := readByteRange(file, rangeHeader, w)
 		if err != nil && err != io.EOF && code != 0 {
-			w.Write(lastChunk)
+			respondWithError(w, code, "Problem streaming file.", err)
 			log.Println(err)
-			respondWithError(w, code, "File reading error.", err)
 			return
 		} else {
-			w.Write(lastChunk)
+			log.Println(err)
 			return
 		}
 
 	} else {
-		w.WriteHeader(206)
+		w.WriteHeader(200)
 		log.Println("Streaming full file.")
-		//maxBytesPerWrite := 5 << 20
-		maxBytesPerWrite := 5 << 10
+		maxBytesPerWrite := 5 << 20
+		//maxBytesPerWrite := 5 << 10
 		writeData := make([]byte, maxBytesPerWrite)
 		var offsetN int64 = 0
 
 		for {
-			time.Sleep(time.Millisecond * 200)
 			nFile, err := file.ReadAt(writeData, offsetN)
+			if nFile == 0 {
+				_, err = w.Write(writeData)
+				if err != nil {
+					log.Println(err)
+					return
+				}
+				return
+			}
 			offsetN += int64(nFile)
 			//_, err = io.Copy(writeBuffer, file)
 			_, err = w.Write(writeData[:nFile])
 			if err != nil {
 				log.Println(err)
-				break
+				return
 			}
 		}
-		return
 	}
 }
