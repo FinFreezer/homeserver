@@ -70,17 +70,18 @@ func readByteRange(file *os.File, byteRange string, w http.ResponseWriter) ([]by
 		}
 
 		if end == "" && startInt < int(fileSize) {
+			w.WriteHeader(206)
 			log.Println("Streaming until the end.")
 			w.Header().Set("Content-Length", strconv.Itoa(int(fileSize-int64(startInt)+1)))
 			for n := startInt; n < int(fileSize); {
 				nRead, err := file.ReadAt(writeData, int64(startInt))
 				n += nRead
 				if err != nil && err != io.EOF {
-					return writeData[:nRead], err, 500
+					return writeData[:nRead], err, 0
 				}
 				w.Write(writeData[:nRead])
 			}
-			return writeData, err, 200
+			return writeData, err, 0
 		}
 
 		endInt, err := strconv.Atoi(end)
@@ -89,6 +90,7 @@ func readByteRange(file *os.File, byteRange string, w http.ResponseWriter) ([]by
 			return []byte{}, errors.New("Error converting range."), 416
 		}
 		if startInt < endInt && endInt < int(fileSize) {
+			w.WriteHeader(206)
 			log.Println("Streaming range.")
 			w.Header().Set("Content-Length", strconv.Itoa(int(endInt-startInt+1)))
 			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", startInt, endInt, fileSize))
