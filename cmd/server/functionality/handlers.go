@@ -142,7 +142,6 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		} else {
-			log.Println(err)
 			return
 		}
 
@@ -161,6 +160,9 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Println(err)
 					return
+				}
+				if flusher, ok := w.(http.Flusher); ok {
+					flusher.Flush()
 				}
 				return
 			}

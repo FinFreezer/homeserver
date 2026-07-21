@@ -76,14 +76,26 @@ func readByteRange(file *os.File, byteRange string, w http.ResponseWriter) (erro
 			w.WriteHeader(206)
 			for n := startInt; n < int(fileSize); {
 				nRead, err := file.ReadAt(writeData, int64(startInt))
+				if nRead == 0 {
+					if flusher, ok := w.(http.Flusher); ok {
+						flusher.Flush()
+					}
+					return nil, 0
+				}
 				startInt += nRead
 				if err != nil && err != io.EOF {
 					return err, 0
 				}
 				_, err = w.Write(writeData[:nRead])
 				if err != nil {
+					if flusher, ok := w.(http.Flusher); ok {
+						flusher.Flush()
+					}
 					return nil, 0
 				}
+			}
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
 			}
 			return err, 0
 		} else {
@@ -103,12 +115,21 @@ func readByteRange(file *os.File, byteRange string, w http.ResponseWriter) (erro
 					}
 					//file.Seek(int64(startInt), 0)
 					nRead, err := file.ReadAt(writeData, int64(n))
+					if nRead == 0 {
+						if flusher, ok := w.(http.Flusher); ok {
+							flusher.Flush()
+						}
+						return nil, 0
+					}
 					n += nRead
 					if err != nil && err != io.EOF {
 						return err, 500
 					}
 					_, err = w.Write(writeData[:nRead])
 					if err != nil {
+						if flusher, ok := w.(http.Flusher); ok {
+							flusher.Flush()
+						}
 						return nil, 0
 					}
 				}
