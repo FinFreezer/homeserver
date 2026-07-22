@@ -66,8 +66,9 @@ func MainCLI() {
 }
 
 func initCommands() {
-	commands["list"] = listcontents
+	commands["list"] = listContents
 	commands["login"] = login
+	commands["stream"] = streamContent
 }
 
 func initLogin(reader *bufio.Reader) *c.UserConfig {

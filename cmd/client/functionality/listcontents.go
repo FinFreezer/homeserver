@@ -10,7 +10,6 @@ import (
 
 	pg "github.com/finfreezer/homeserver/cmd/server/functionality"
 	c "github.com/finfreezer/homeserver/internal/config"
-	"github.com/joho/godotenv"
 )
 
 type FileInfo struct {
@@ -24,10 +23,9 @@ type ListDirResponse struct {
 	Error   string      `json:"error,omitempty"`
 }
 
-func listcontents(cfg *c.UserConfig) bool {
+func listContents(cfg *c.UserConfig) bool {
 	fullPath := path.Join(cfg.Args...)
-	godotenv.Load()
-	fullUrl := os.Getenv("DST_SERVER") + "/listdir/" + fullPath
+	fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/listdir/" + fullPath
 	log.Printf("Making a GET request to %s\n", fullUrl)
 	resp, err := http.Get(fullUrl)
 	if err != nil {

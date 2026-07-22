@@ -129,7 +129,7 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	w.Header().Set("Content-Type", "video/mp4")
+	w.Header().Set("Content-Type", readContentType(file))
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Accept-Ranges", "bytes")

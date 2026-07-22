@@ -26,7 +26,6 @@ type responseParams struct {
 
 // Todo: refactor to using client with newRequest and .Do()
 func login(cfg *c.UserConfig) bool {
-	godotenv.Load()
 	params := loginParameters{Name: cfg.User, WithToken: true, Token: cfg.Token}
 	if len(cfg.Args) > 1 {
 		cfg.User = cfg.Args[0]
@@ -38,7 +37,7 @@ func login(cfg *c.UserConfig) bool {
 		log.Println(err)
 		return false
 	}
-	fullUrl := os.Getenv("DST_SERVER") + "/login"
+	fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/login"
 	log.Printf("Making a POST request to %s with Tokenstatus: %v\n", fullUrl, params.WithToken)
 	resp, err := http.Post(fullUrl, "application/json", bytes.NewReader(rqst))
 	if err != nil {
