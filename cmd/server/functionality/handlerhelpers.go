@@ -141,8 +141,12 @@ func readByteRange(file *os.File, byteRange string, w http.ResponseWriter) (erro
 	}
 }
 
-func readContentType(f *os.File) string {
+func readContentType(f *os.File) (string, error) {
 	readBuffer := make([]byte, 512)
-	f.Read(readBuffer)
-	return http.DetectContentType(readBuffer)
+	n, err := f.Read(readBuffer)
+	f.Seek(0, 0)
+	if err != nil && err != io.EOF && n != 0 {
+		return "", err
+	}
+	return http.DetectContentType(readBuffer), nil
 }

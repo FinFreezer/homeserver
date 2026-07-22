@@ -10,7 +10,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var commands = make(map[string]handlerFunc)
+type Command struct {
+	fun           handlerFunc
+	requiresLogin bool
+	name          string
+	desc          string
+}
+
+var commands = make(map[string]Command)
 
 func MainCLI() {
 	initCommands()
@@ -41,7 +48,7 @@ func MainCLI() {
 			if len(args) > 1 {
 				newConf.Args = args[1:]
 			}
-			success := cmd(newConf)
+			success := cmd.fun(newConf)
 			newConf.Args = []string{}
 			if !success {
 				fmt.Println("Something went wrong.")
@@ -51,7 +58,7 @@ func MainCLI() {
 			if len(args) > 1 {
 				newConf.Args = args[1:]
 			}
-			success, err := authorizedMiddleware(newConf, cmd)
+			success, err := authorizedMiddleware(newConf, cmd.fun, cmd.requiresLogin)
 			newConf.Args = []string{} //Clear old args
 			if err != nil {
 				fmt.Println(err)
@@ -66,9 +73,41 @@ func MainCLI() {
 }
 
 func initCommands() {
-	commands["list"] = listContents
-	commands["login"] = login
-	commands["stream"] = streamContent
+	commands["list"] = Command{
+		fun:           listContents,
+		requiresLogin: true,
+		name:          "list",
+		desc: `Lists all the files and subdirectories. Additional arguments 
+		can be given to change the 'root' of the displayed tree. Starts from where the
+		server assets are by default. list (optional){path/to/directory}`,
+	}
+	commands["login"] = Command{
+		fun:           login,
+		requiresLogin: false,
+		name:          "login",
+		desc: `Authorizes current user to allow use of commands. If the user has an
+		existing log-in session, no arguments needed. 
+		Otherwise use 'login {username} {password}`,
+	}
+	commands["stream"] = Command{
+		fun:           streamContent,
+		requiresLogin: true,
+		name:          "stream",
+		desc: `Opens a data stream of the desired content in the default browser.
+		Current use 'stream {path/to/file}`,
+	}
+	commands["quit"] = Command{
+		fun:           quitClient,
+		requiresLogin: false,
+		name:          "quit",
+		desc:          "Quits the client.",
+	}
+	commands["help"] = Command{
+		fun:           listCommands,
+		requiresLogin: false,
+		name:          "help",
+		desc:          "Prints out the description for each available command.",
+	}
 }
 
 func initLogin(reader *bufio.Reader) *c.UserConfig {
@@ -98,4 +137,17 @@ func initLogin(reader *bufio.Reader) *c.UserConfig {
 			fmt.Println("Currently unknown command, please login.")
 		}
 	}
+}
+
+func quitClient(cfg *c.UserConfig) bool {
+	fmt.Printf("Goodbye, %s\n", cfg.User)
+	os.Exit(0)
+	return true
+}
+
+func listCommands(cfg *c.UserConfig) bool {
+	for _, cmd := range commands {
+		fmt.Printf("Description of '%s': %s\n\n", cmd.name, cmd.desc)
+	}
+	return true
 }
