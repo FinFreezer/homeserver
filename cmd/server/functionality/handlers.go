@@ -81,6 +81,7 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO: support paths with spaces and special characters better & use environment paths as root.
 func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 
 	type FileInfo struct {
@@ -92,8 +93,9 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		Files   FileNode `json:"directory"`
 	}
 
-	fullPath := "./assets/" + r.PathValue("path")
-	log.Println("Received a request to list contents.")
+	fullPath := os.Getenv("ASSET_ROOT") + r.PathValue("path")
+	log.Println(r.PathValue("path"))
+	log.Printf("Received a request to list contents at %s.\n", fullPath)
 	fi, err := os.Stat(fullPath)
 	if err != nil || !fi.IsDir() {
 		log.Println(err)
@@ -111,7 +113,7 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
-	fullPath := "./assets/" + r.PathValue("path")
+	fullPath := os.Getenv("ASSET_ROOT") + r.PathValue("path")
 	log.Println("Received a request to stream.")
 	fi, err := os.Stat(fullPath)
 	if err != nil {
