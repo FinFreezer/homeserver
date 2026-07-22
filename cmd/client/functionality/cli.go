@@ -43,18 +43,7 @@ func MainCLI() {
 		for i := range args {
 			args[i] = strings.TrimSpace(args[i])
 		}
-		if args[0] == "login" {
-			cmd := commands["login"]
-			if len(args) > 1 {
-				newConf.Args = args[1:]
-			}
-			success := cmd.fun(newConf)
-			newConf.Args = []string{}
-			if !success {
-				fmt.Println("Something went wrong.")
-			}
-
-		} else if cmd, ok := commands[args[0]]; ok {
+		if cmd, ok := commands[args[0]]; ok {
 			if len(args) > 1 {
 				newConf.Args = args[1:]
 			}
