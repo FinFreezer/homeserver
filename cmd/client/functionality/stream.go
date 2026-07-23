@@ -4,7 +4,7 @@ import (
 	"log"
 	//"net/http"
 	"os"
-	"path"
+	"strings"
 
 	"github.com/pkg/browser"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func streamContent(cfg *c.UserConfig) bool {
-	fullPath := path.Join(cfg.Args...)
+	fullPath := strings.Join(cfg.Args, "%20")
 	fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/stream/" + fullPath
 	err := browser.OpenURL(fullUrl)
 	if err != nil {

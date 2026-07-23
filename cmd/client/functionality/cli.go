@@ -66,9 +66,9 @@ func initCommands() {
 		fun:           listContents,
 		requiresLogin: true,
 		name:          "list",
-		desc: `Lists all the files and subdirectories. Additional arguments 
-		can be given to change the 'root' of the displayed tree. Starts from where the
-		server assets are by default. list (optional){path/to/directory}`,
+		desc: `Lists all the files and subdirectories. With the -dirOnly flag, skips displaying files.
+		Additional arguments can be given to change the 'root' of the displayed tree. 
+		Starts from where the server assets are by default. 'list {-dirOnly} {pathToRoot}'`,
 	}
 	commands["login"] = Command{
 		fun:           login,
@@ -83,7 +83,7 @@ func initCommands() {
 		requiresLogin: true,
 		name:          "stream",
 		desc: `Opens a data stream of the desired content in the default browser.
-		Current use 'stream {path/to/file}`,
+		Current use 'stream {path/to/file.png}`,
 	}
 	commands["quit"] = Command{
 		fun:           quitClient,

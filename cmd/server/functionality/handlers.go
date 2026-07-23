@@ -83,7 +83,7 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 
 // TODO: support paths with spaces and special characters better & use environment paths as root.
 func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
-
+	var dirOnly bool
 	type FileInfo struct {
 		Name  string `json:"name"`
 		IsDir bool   `json:"isDir"`
@@ -94,15 +94,21 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fullPath := os.Getenv("ASSET_ROOT") + r.PathValue("path")
+	dirOnlyFlag := r.URL.Query().Get("dirOnly")
+	if dirOnlyFlag == "true" {
+		dirOnly = true
+	} else {
+		dirOnly = false
+	}
 	log.Println(r.PathValue("path"))
-	log.Printf("Received a request to list contents at %s.\n", fullPath)
+	log.Printf("Received a request to list contents at %s with dirOnly value of %v.\n", fullPath, dirOnly)
 	fi, err := os.Stat(fullPath)
 	if err != nil || !fi.IsDir() {
 		log.Println(err)
 		respondWithError(w, 400, "Issue finding directory.\n", err)
 		return
 	}
-	resultTree, err := buildFileTree(fullPath)
+	resultTree, err := buildFileTree(fullPath, dirOnly)
 	if err != nil {
 		log.Println(err)
 		respondWithError(w, 500, "Issue building directory tree-view.\n", err)

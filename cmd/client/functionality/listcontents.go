@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
+	"strings"
 
 	pg "github.com/finfreezer/homeserver/cmd/server/functionality"
 	c "github.com/finfreezer/homeserver/internal/config"
@@ -24,8 +24,17 @@ type ListDirResponse struct {
 }
 
 func listContents(cfg *c.UserConfig) bool {
-	fullPath := path.Join(cfg.Args...)
-	fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/listdir/" + fullPath
+	fullUrl := ""
+	if len(cfg.Args) > 0 && cfg.Args[0] == "-dirOnly" {
+		fmt.Printf("%+v\n", cfg.Args[1:])
+		fullPath := strings.Join(cfg.Args[1:], "%20")
+		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/listdir/" + fullPath + "?dirOnly=true"
+	} else {
+		fmt.Printf("%+v\n", cfg.Args)
+		fullPath := strings.Join(cfg.Args, "%20")
+		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/listdir/" + fullPath + "?dirOnly=false"
+	}
+
 	log.Printf("Making a GET request to %s\n", fullUrl)
 	resp, err := http.Get(fullUrl)
 	if err != nil {
