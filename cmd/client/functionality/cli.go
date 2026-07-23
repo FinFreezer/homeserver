@@ -68,7 +68,7 @@ func initCommands() {
 		name:          "list",
 		desc: `Lists all the files and subdirectories. With the -dirOnly flag, skips displaying files.
 		Additional arguments can be given to change the 'root' of the displayed tree. 
-		Starts from where the server assets are by default. 'list {-dirOnly} {pathToRoot}'`,
+		Starts from where the server assets are by default. 'list {-dironly} {pathToRoot}'`,
 	}
 	commands["login"] = Command{
 		fun:           login,

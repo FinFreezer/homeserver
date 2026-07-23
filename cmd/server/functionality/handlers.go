@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
@@ -203,10 +205,23 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	type response struct {
 		Message string `json:"reply"`
 	}
-	newRoot := a.CurrentRoot + r.PathValue("path") + "/"
+	type Request struct {
+		NewDirectory string `json:"newDir"`
+	}
+	reqData := Request{}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&reqData); err != nil {
+		log.Println(err)
+		respondWithError(w, 500, "Decoder error", err)
+		return
+	}
+	reqData.NewDirectory = strings.ReplaceAll(reqData.NewDirectory, "%20", " ")
+	newRoot := a.CurrentRoot + "/" + reqData.NewDirectory
+	newRoot = path.Clean(newRoot) + "/"
 	log.Printf("Received a request to move root to '%s'\n", newRoot)
 	fi, err := os.Stat(newRoot)
 	if err != nil {
