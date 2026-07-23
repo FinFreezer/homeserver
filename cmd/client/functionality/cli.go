@@ -97,6 +97,13 @@ func initCommands() {
 		name:          "help",
 		desc:          "Prints out the description for each available command.",
 	}
+	commands["cd"] = Command{
+		fun:           changeDirectory,
+		requiresLogin: true,
+		name:          "cd",
+		desc: `Changes the root folder for commands within the server. 'cd ..' 
+		to go up a directory. cd {pathToSubfolder/a/b...} to down a directory.`,
+	}
 }
 
 func initLogin(reader *bufio.Reader) *c.UserConfig {

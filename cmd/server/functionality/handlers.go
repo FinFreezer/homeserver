@@ -77,11 +77,15 @@ func (a *ApiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		params := database.UpdateUserTokenParams{Authtoken: accessToken, Name: dbUser.Name}
 		a.Database.UpdateUserToken(context.Background(), params)
 		a.Authorized = true
-		respondWithJSON(w, http.StatusOK, response{Message: responseMsg, Token: accessToken})
+		respondWithJSON(w, http.StatusOK,
+			response{
+				Message: responseMsg,
+				Token:   accessToken,
+			},
+		)
 	}
 }
 
-// TODO: support paths with spaces and special characters better & use environment paths as root.
 func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 	var dirOnly bool
 	type FileInfo struct {
@@ -93,7 +97,7 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		Files   FileNode `json:"directory"`
 	}
 
-	fullPath := os.Getenv("ASSET_ROOT") + r.PathValue("path")
+	fullPath := a.CurrentRoot + r.PathValue("path")
 	dirOnlyFlag := r.URL.Query().Get("dirOnly")
 	if dirOnlyFlag == "true" {
 		dirOnly = true
@@ -101,7 +105,8 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		dirOnly = false
 	}
 	log.Println(r.PathValue("path"))
-	log.Printf("Received a request to list contents at %s with dirOnly value of %v.\n", fullPath, dirOnly)
+	log.Printf("Received a request to list contents at %s with dirOnly value of %v.\n",
+		fullPath, dirOnly)
 	fi, err := os.Stat(fullPath)
 	if err != nil || !fi.IsDir() {
 		log.Println(err)
@@ -115,12 +120,17 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	msg := fmt.Sprintf("Listing files in %s:\n", fullPath)
-	respondWithJSON(w, http.StatusOK, ListDirResponse{Message: msg, Files: resultTree})
+	respondWithJSON(w, http.StatusOK,
+		ListDirResponse{
+			Message: msg,
+			Files:   resultTree,
+		},
+	)
 }
 
 func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
-	fullPath := os.Getenv("ASSET_ROOT") + r.PathValue("path")
-	log.Println("Received a request to stream.")
+	fullPath := a.CurrentRoot + r.PathValue("path")
+	log.Printf("Received a request to stream path %s\n", fullPath)
 	fi, err := os.Stat(fullPath)
 	if err != nil {
 		log.Println(err)
@@ -190,4 +200,25 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		Message string `json:"reply"`
+	}
+	newRoot := a.CurrentRoot + r.PathValue("path") + "/"
+	log.Printf("Received a request to move root to '%s'\n", newRoot)
+	fi, err := os.Stat(newRoot)
+	if err != nil {
+		respondWithError(w, 400, "Error finding new root.", err)
+		return
+	}
+	if !fi.IsDir() {
+		respondWithError(w, 400, "New root must be a directory.", nil)
+		return
+	}
+	a.CurrentRoot = newRoot
+	respondWithJSON(w, 200, response{
+		Message: "Root moved succesfully.",
+	})
 }

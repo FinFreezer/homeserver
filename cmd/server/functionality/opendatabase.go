@@ -10,11 +10,12 @@ import (
 )
 
 type ApiConfig struct {
-	Database   *database.Queries
-	Platform   string
-	Secret     string
-	ApiKey     string
-	Authorized bool
+	Database    *database.Queries
+	Platform    string
+	Secret      string
+	ApiKey      string
+	Authorized  bool
+	CurrentRoot string
 }
 
 func OpenDatabase() (*ApiConfig, error) {
@@ -24,6 +25,7 @@ func OpenDatabase() (*ApiConfig, error) {
 	secret := os.Getenv("SECRET")
 	dbURL := os.Getenv("DB_URL")
 	ApiKey := os.Getenv("API_KEY")
+	newRoot := os.Getenv("ASSET_ROOT")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Println(err)
@@ -31,11 +33,12 @@ func OpenDatabase() (*ApiConfig, error) {
 	}
 	dbQueries := database.New(db)
 	newApiConf := ApiConfig{
-		Database:   dbQueries,
-		Platform:   platform,
-		Secret:     secret,
-		ApiKey:     ApiKey,
-		Authorized: false,
+		Database:    dbQueries,
+		Platform:    platform,
+		Secret:      secret,
+		ApiKey:      ApiKey,
+		Authorized:  false,
+		CurrentRoot: newRoot,
 	}
 	return &newApiConf, nil
 }
