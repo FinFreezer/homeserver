@@ -8,10 +8,22 @@ import (
 	"os"
 	"strings"
 
+	pg "github.com/finfreezer/homeserver/cmd/server/functionality"
 	c "github.com/finfreezer/homeserver/internal/config"
 )
 
-func listContents(cfg *c.UserConfig) bool {
+type FileInfo struct {
+	Name  string `json:"name"`
+	IsDir bool   `json:"isDir"`
+}
+
+type ListDirResponse struct {
+	Message string      `json:"reply"`
+	Files   pg.FileNode `json:"directory"`
+	Error   string      `json:"error,omitempty"`
+}
+
+func listAllContents(cfg *c.UserConfig) bool {
 	fullUrl := ""
 	if len(cfg.Args) > 0 && cfg.Args[0] == "-dironly" {
 		fmt.Printf("%+v\n", cfg.Args[1:])
@@ -52,5 +64,22 @@ func listContents(cfg *c.UserConfig) bool {
 		}
 		log.Printf("Something went wrong: %s\n", newResp.Error)
 		return false
+	}
+}
+
+func printContentTree(Node pg.FileNode, depth int) {
+	if !Node.IsDir {
+		for i := 0; i < depth; i++ {
+			fmt.Print("\t")
+		}
+		fmt.Printf("F - %s\n", Node.Name)
+	} else {
+		for i := 0; i < depth; i++ {
+			fmt.Print("\t")
+		}
+		fmt.Printf("D - %s\n", Node.Name)
+		for _, child := range Node.Children {
+			printContentTree(child, depth+1)
+		}
 	}
 }

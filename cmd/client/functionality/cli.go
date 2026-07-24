@@ -62,13 +62,22 @@ func MainCLI() {
 }
 
 func initCommands() {
+	commands["listall"] = Command{
+		fun:           listAllContents,
+		requiresLogin: true,
+		name:          "listall",
+		desc: `Lists all the files and subdirectories starting from the working directory. 
+		With the -dirOnly flag, skips displaying files.
+		Additional arguments can be given to change the 'root' of the displayed tree.
+		Starts from current working directory by default. 'listall {-dironly} {pathToRoot}'`,
+	}
 	commands["list"] = Command{
 		fun:           listContents,
 		requiresLogin: true,
 		name:          "list",
-		desc: `Lists all the files and subdirectories. With the -dirOnly flag, skips displaying files.
-		Additional arguments can be given to change the 'root' of the displayed tree. 
-		Starts from where the server assets are by default. 'list {-dironly} {pathToRoot}'`,
+		desc: `Lists all the files and subdirectories of the current working directory.
+		Additional -dironly flag displays only subdirectories.
+		'list {-dironly}.`,
 	}
 	commands["login"] = Command{
 		fun:           login,
