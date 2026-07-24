@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
@@ -121,7 +121,7 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "Issue building directory tree-view.\n", err)
 		return
 	}
-	msg := fmt.Sprintf("Listing files in %s:\n", fullPath)
+	msg := fmt.Sprintf("Listing files in %s\n", fullPath)
 	respondWithJSON(w, http.StatusOK,
 		ListDirResponse{
 			Message: msg,
@@ -220,8 +220,22 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reqData.NewDirectory = strings.ReplaceAll(reqData.NewDirectory, "%20", " ")
-	newRoot := a.CurrentRoot + "/" + reqData.NewDirectory
-	newRoot = path.Clean(newRoot) + "/"
+	newRoot := filepath.Join(a.CurrentRoot, reqData.NewDirectory)
+	newRoot = filepath.Clean(newRoot) + string(filepath.Separator)
+	absRoot, err := filepath.Abs(a.AssetRoot)
+	if err != nil {
+		respondWithError(w, 500, "Error resolving asset root", err)
+		return
+	}
+	absNewPath, err := filepath.Abs(newRoot)
+	if err != nil {
+		respondWithError(w, 500, "Error resolving new path.", err)
+		return
+	}
+	if !strings.HasPrefix(absNewPath, absRoot+string(filepath.Separator)) {
+		respondWithError(w, 400, "New root out of allowed bounds.", err)
+		return
+	}
 	log.Printf("Received a request to move root to '%s'\n", newRoot)
 	fi, err := os.Stat(newRoot)
 	if err != nil {

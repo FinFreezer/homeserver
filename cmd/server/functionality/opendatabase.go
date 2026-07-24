@@ -15,6 +15,7 @@ type ApiConfig struct {
 	Secret      string
 	ApiKey      string
 	Authorized  bool
+	AssetRoot   string
 	CurrentRoot string
 }
 
@@ -38,6 +39,7 @@ func OpenDatabase() (*ApiConfig, error) {
 		Secret:      secret,
 		ApiKey:      ApiKey,
 		Authorized:  false,
+		AssetRoot:   newRoot,
 		CurrentRoot: newRoot,
 	}
 	return &newApiConf, nil
