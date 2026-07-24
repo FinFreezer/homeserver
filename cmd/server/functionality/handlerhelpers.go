@@ -18,19 +18,25 @@ type FileNode struct {
 	Children []FileNode `json:"children,omitempty"`
 }
 
-func buildFileTree(fromPath string, dirOnly bool) (FileNode, error) {
-	log.Printf("Building a tree with dirOnly value of %v\n", dirOnly)
+func buildFileTree(fromPath string, dirOnly bool, depth int) (FileNode, error) {
 	itemList, err := os.ReadDir(fromPath)
 	info, err := os.Stat(fromPath)
 	if err != nil || !info.IsDir() {
 		return FileNode{Name: info.Name(), IsDir: false}, err
 	}
 	currentDir := FileNode{Name: info.Name(), IsDir: true, Children: []FileNode{}}
-
 	if dirOnly {
 		for _, item := range itemList {
 			if item.IsDir() {
-				childNode, err := buildFileTree(path.Join(fromPath, item.Name()), dirOnly)
+				childNode := FileNode{}
+				err = nil
+				if depth > 0 {
+					childNode, err = buildFileTree(path.Join(fromPath, item.Name()), dirOnly, depth-1)
+				} else {
+					childNode.Name = item.Name()
+					childNode.IsDir = item.IsDir()
+					childNode.Children = nil
+				}
 				currentDir.Children = append(currentDir.Children, childNode)
 				if err != nil {
 					return childNode, err
@@ -49,7 +55,15 @@ func buildFileTree(fromPath string, dirOnly bool) (FileNode, error) {
 					})
 
 			} else {
-				childNode, err := buildFileTree(path.Join(fromPath, item.Name()), dirOnly)
+				childNode := FileNode{}
+				err = nil
+				if depth > 0 {
+					childNode, err = buildFileTree(path.Join(fromPath, item.Name()), dirOnly, depth-1)
+				} else {
+					childNode.Name = item.Name()
+					childNode.IsDir = item.IsDir()
+					childNode.Children = nil
+				}
 				if err != nil {
 					return childNode, err
 				}

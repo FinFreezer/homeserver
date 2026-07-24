@@ -29,12 +29,12 @@ func listAllContents(cfg *c.UserConfig) bool {
 		fmt.Printf("%+v\n", cfg.Args[1:])
 		fullPath := strings.Join(cfg.Args[1:], "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
-			"/listdir/" + fullPath + "?dirOnly=true"
+			"/listdir/" + fullPath + "?dirOnly=true" + "&recDepth=99"
 	} else {
 		fmt.Printf("%+v\n", cfg.Args)
 		fullPath := strings.Join(cfg.Args, "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
-			"/listdir/" + fullPath + "?dirOnly=false"
+			"/listdir/" + fullPath + "?dirOnly=false" + "&recDepth=99"
 	}
 
 	log.Printf("Making a GET request to %s\n", fullUrl)

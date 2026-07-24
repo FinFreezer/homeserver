@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"io"
@@ -98,24 +99,29 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 		Message string   `json:"reply"`
 		Files   FileNode `json:"directory"`
 	}
-
 	fullPath := a.CurrentRoot + r.PathValue("path")
 	dirOnlyFlag := r.URL.Query().Get("dirOnly")
+	listDepthStr := r.URL.Query().Get("recDepth")
+	listDepthInt, err := strconv.Atoi(listDepthStr)
+	if err != nil {
+		log.Println(err)
+		listDepthInt = 0
+	}
 	if dirOnlyFlag == "true" {
 		dirOnly = true
 	} else {
 		dirOnly = false
 	}
 	log.Println(r.PathValue("path"))
-	log.Printf("Received a request to list contents at %s with dirOnly value of %v.\n",
-		fullPath, dirOnly)
+	log.Printf("Received a request to list contents at %s with dirOnly value of %v and depth of %d.\n",
+		fullPath, dirOnly, listDepthInt)
 	fi, err := os.Stat(fullPath)
 	if err != nil || !fi.IsDir() {
 		log.Println(err)
 		respondWithError(w, 400, "Issue finding directory.\n", err)
 		return
 	}
-	resultTree, err := buildFileTree(fullPath, dirOnly)
+	resultTree, err := buildFileTree(fullPath, dirOnly, listDepthInt)
 	if err != nil {
 		log.Println(err)
 		respondWithError(w, 500, "Issue building directory tree-view.\n", err)
