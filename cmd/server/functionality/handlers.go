@@ -239,7 +239,7 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !strings.HasPrefix(absNewPath, absRoot+string(filepath.Separator)) {
-		respondWithError(w, 400, "New root out of allowed bounds.", err)
+		respondWithError(w, 403, "New root out of allowed bounds.", err)
 		return
 	}
 	log.Printf("Received a request to move root to '%s'\n", newRoot)
