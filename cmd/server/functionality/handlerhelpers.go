@@ -184,11 +184,6 @@ func readContentType(f *os.File) (string, error) {
 }
 
 func createDefaultPlaylist(path string) {
-	/*absDir, err := filepath.Abs(path)
-	if err != nil {
-		log.Println(err)
-		return
-	}*/
 	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/"
 	dir := filepath.Dir(path)
 	dirStat, err := os.Stat(dir)
