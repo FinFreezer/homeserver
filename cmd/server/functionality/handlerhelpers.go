@@ -6,8 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -179,4 +181,71 @@ func readContentType(f *os.File) (string, error) {
 		return "", err
 	}
 	return http.DetectContentType(readBuffer), nil
+}
+
+func createDefaultPlaylist(path string) {
+	/*absDir, err := filepath.Abs(path)
+	if err != nil {
+		log.Println(err)
+		return
+	}*/
+	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/"
+	dir := filepath.Dir(path)
+	dirStat, err := os.Stat(dir)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	playlist, err := os.Create(dir + "/playlist.m3u")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer playlist.Close()
+	playlist.Write([]byte("#EXTM3U\n"))
+	playlist.Write([]byte("#PLAYLIST: Streaming\n"))
+	if dirStat.IsDir() {
+		entryList, err := os.ReadDir(dir)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		episode := 1
+		for _, entry := range entryList {
+			infoStr := fmt.Sprintf("Episode %d", episode)
+			urlPath, err := url.Parse(streamingPath + (cleanPath(dir + "/" + entry.Name())))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			if !entry.IsDir() {
+				if isValidType(entry.Name()) {
+
+					toWrite := fmt.Sprintf("#EXTINF:-1,%s\n%s\n",
+						infoStr, urlPath.String(),
+					)
+					playlist.Write([]byte(toWrite))
+					episode += 1
+				}
+			}
+		}
+	} else {
+		return
+	}
+}
+
+func isValidType(name string) bool {
+	validTypes := []string{".mp3", ".mp4", ".mkv", ".wav", ".avi", ".webm"}
+	for _, typeName := range validTypes {
+		if strings.Contains(name, typeName) {
+			return true
+		}
+	}
+	return false
+}
+
+func cleanPath(internal string) string {
+	pathList := strings.Split(internal, "/")
+	pathList[0] = "stream"
+	return path.Join(pathList...)
 }

@@ -111,7 +111,7 @@ func initCommands() {
 		requiresLogin: true,
 		name:          "cd",
 		desc: `Changes the root folder for commands within the server. 'cd ..' 
-		to go up a directory. cd {pathToSubfolder/a/b...} to down a directory.`,
+		to go up a directory. cd {pathToSubfolder/a/b...} to go down a directory.`,
 	}
 }
 
