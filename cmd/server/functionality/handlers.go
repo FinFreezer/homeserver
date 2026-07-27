@@ -162,7 +162,15 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Serving filetype %s", contentType)
-	createDefaultPlaylist(fullPath)
+	if playlist := createDefaultPlaylist(fullPath); playlist != nil {
+		defer playlist.Close()
+		log.Println("Responding with a playlist.")
+		w.Header().Set("Content-Type", "audio/x-mpegurl")
+		w.Header().Set("Content-Disposition", "inline; filename=\"playlist.m3u\"")
+		w.WriteHeader(200)
+		io.Copy(w, playlist)
+		return
+	}
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")

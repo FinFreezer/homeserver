@@ -183,27 +183,30 @@ func readContentType(f *os.File) (string, error) {
 	return http.DetectContentType(readBuffer), nil
 }
 
-func createDefaultPlaylist(path string) {
+func createDefaultPlaylist(path string) *os.File {
 	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/"
 	dir := filepath.Dir(path)
 	dirStat, err := os.Stat(dir)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil
 	}
+	if _, err := os.Stat(dir + "/playlist.m3u"); !errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
 	playlist, err := os.Create(dir + "/playlist.m3u")
 	if err != nil {
 		log.Println(err)
-		return
+		return nil
 	}
-	defer playlist.Close()
 	playlist.Write([]byte("#EXTM3U\n"))
 	playlist.Write([]byte("#PLAYLIST: Streaming\n"))
 	if dirStat.IsDir() {
 		entryList, err := os.ReadDir(dir)
 		if err != nil {
 			log.Println(err)
-			return
+			return nil
 		}
 		episode := 1
 		for _, entry := range entryList {
@@ -211,7 +214,7 @@ func createDefaultPlaylist(path string) {
 			urlPath, err := url.Parse(streamingPath + (cleanPath(dir + "/" + entry.Name())))
 			if err != nil {
 				log.Println(err)
-				return
+				return nil
 			}
 			if !entry.IsDir() {
 				if isValidType(entry.Name()) {
@@ -224,8 +227,10 @@ func createDefaultPlaylist(path string) {
 				}
 			}
 		}
+		playlist.Seek(0, 0)
+		return playlist
 	} else {
-		return
+		return nil
 	}
 }
 
