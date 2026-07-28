@@ -3,8 +3,10 @@ package functionality
 import (
 	"log"
 	//"net/http"
+	"errors"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/pkg/browser"
@@ -26,18 +28,14 @@ func streamContent(cfg *c.UserConfig) bool {
 	switch playType {
 	case "-f":
 		fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/stream/" + fullPath + "?playlist=false"
-		cmd := exec.Command("vlc", fullUrl)
-		err := cmd.Run()
-		if err != nil {
+		if err := getMediaPlayer(fullUrl); err != nil {
 			log.Println(err)
 			return false
 		}
 		return true
 	case "-a":
 		fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/stream/" + fullPath + "?playlist=true"
-		cmd := exec.Command("vlc", fullUrl)
-		err := cmd.Run()
-		if err != nil {
+		if err := getMediaPlayer(fullUrl); err != nil {
 			log.Println(err)
 			return false
 		}
@@ -58,5 +56,29 @@ func streamContent(cfg *c.UserConfig) bool {
 			return false
 		}
 		return true
+	}
+}
+
+func getMediaPlayer(pathToStream string) error {
+	switch runtime.GOOS {
+	case "linux":
+		cmd := exec.Command("vlc", pathToStream)
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		return nil
+	case "windows":
+		cmd := exec.Command("vlc.exe", pathToStream)
+		err := cmd.Run()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		return err
+	default:
+		log.Println("Unsupported environment.")
+		return errors.New("Unsupported runtime environment.")
 	}
 }

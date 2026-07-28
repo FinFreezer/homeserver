@@ -1,4 +1,0 @@
-#EXTM3U
-#PLAYLIST: Streaming
-#EXTINF:-1,Episode 1
-http://localhost:12000/stream/vim%20short.mp4

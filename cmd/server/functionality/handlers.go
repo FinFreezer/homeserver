@@ -150,7 +150,7 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if sendPlaylist := r.URL.Query().Get("playlist"); sendPlaylist == "true" {
-		servePlaylist(w, fullPath)
+		servePlaylist(w, fullPath, a)
 		return
 	}
 	file, err := os.Open(fullPath)
@@ -263,7 +263,7 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func servePlaylist(w http.ResponseWriter, fullPath string) {
+func servePlaylist(w http.ResponseWriter, fullPath string, a *ApiConfig) {
 	fi, err := os.Stat(fullPath)
 	if err != nil {
 		log.Println(err)
@@ -274,7 +274,7 @@ func servePlaylist(w http.ResponseWriter, fullPath string) {
 		respondWithError(w, 400, "Can't stream a directory.\n", err)
 		return
 	}
-	if playlist := createDefaultPlaylist(fullPath); playlist != nil {
+	if playlist := createDefaultPlaylist(fullPath, a); playlist != nil {
 		defer playlist.Close()
 		log.Println("Responding with a playlist.")
 		w.Header().Set("Content-Type", "audio/x-mpegurl")

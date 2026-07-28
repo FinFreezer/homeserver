@@ -183,8 +183,9 @@ func readContentType(f *os.File) (string, error) {
 	return http.DetectContentType(readBuffer), nil
 }
 
-func createDefaultPlaylist(path string) *os.File {
-	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/"
+func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
+	log.Printf("Creating a playlist with current directory of %s, and path %s", a.CurrentRoot, path)
+	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/stream/"
 	startFrom := filepath.Base(path)
 	log.Printf("Start from episode '%s'\n", startFrom)
 	dir := filepath.Dir(path)
@@ -213,7 +214,7 @@ func createDefaultPlaylist(path string) *os.File {
 		episode := 1
 		for _, entry := range entryList {
 			infoStr := fmt.Sprintf("Episode %d", episode)
-			urlPath, err := url.Parse(streamingPath + (cleanPath(dir + "/" + entry.Name())))
+			urlPath, err := url.Parse(streamingPath + (cleanPath(dir+"/"+entry.Name(), a.CurrentRoot)))
 			if err != nil {
 				log.Println(err)
 				return nil
@@ -246,8 +247,14 @@ func isValidType(name string) bool {
 	return false
 }
 
-func cleanPath(internal string) string {
+func cleanPath(internal string, currentRoot string) string {
 	pathList := strings.Split(internal, "/")
+	rootList := strings.Split(currentRoot, "/")
+	rootList[0] = "stream"
 	pathList[0] = "stream"
-	return path.Join(pathList...)
+	relativeRoot := path.Join(rootList...) + "/"
+	newPath := path.Join(pathList...)
+	log.Printf("Moving %s to match %s", newPath, relativeRoot)
+	pathToReturn := strings.ReplaceAll(newPath, relativeRoot, "")
+	return pathToReturn
 }
