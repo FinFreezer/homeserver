@@ -195,7 +195,7 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 		return nil
 	}
 	if _, err := os.Stat(dir + "/playlist.m3u"); !errors.Is(err, os.ErrNotExist) {
-		return nil
+		os.Remove(dir + "/playlist.m3u")
 	}
 
 	playlist, err := os.Create(dir + "/playlist.m3u")
