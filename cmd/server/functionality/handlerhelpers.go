@@ -185,6 +185,8 @@ func readContentType(f *os.File) (string, error) {
 
 func createDefaultPlaylist(path string) *os.File {
 	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/"
+	startFrom := filepath.Base(path)
+	log.Printf("Start from episode '%s'\n", startFrom)
 	dir := filepath.Dir(path)
 	dirStat, err := os.Stat(dir)
 	if err != nil {

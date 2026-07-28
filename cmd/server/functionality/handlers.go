@@ -149,6 +149,10 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 400, "Can't stream a directory.\n", err)
 		return
 	}
+	if sendPlaylist := r.URL.Query().Get("playlist"); sendPlaylist == "true" {
+		servePlaylist(w, fullPath)
+		return
+	}
 	file, err := os.Open(fullPath)
 	if err != nil {
 		respondWithError(w, 500, "Error opening file.\n", err)
@@ -162,15 +166,6 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Serving filetype %s", contentType)
-	if playlist := createDefaultPlaylist(fullPath); playlist != nil {
-		defer playlist.Close()
-		log.Println("Responding with a playlist.")
-		w.Header().Set("Content-Type", "audio/x-mpegurl")
-		w.Header().Set("Content-Disposition", "inline; filename=\"playlist.m3u\"")
-		w.WriteHeader(200)
-		io.Copy(w, playlist)
-		return
-	}
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -266,4 +261,27 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, response{
 		Message: "Root moved succesfully.",
 	})
+}
+
+func servePlaylist(w http.ResponseWriter, fullPath string) {
+	fi, err := os.Stat(fullPath)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, 400, "Couldn't reach target.\n", err)
+		return
+	}
+	if fi.IsDir() {
+		respondWithError(w, 400, "Can't stream a directory.\n", err)
+		return
+	}
+	if playlist := createDefaultPlaylist(fullPath); playlist != nil {
+		defer playlist.Close()
+		log.Println("Responding with a playlist.")
+		w.Header().Set("Content-Type", "audio/x-mpegurl")
+		w.Header().Set("Content-Disposition", "inline; filename=\"playlist.m3u\"")
+		w.WriteHeader(200)
+		io.Copy(w, playlist)
+		return
+	}
+	respondWithError(w, 400, "Unable to reach target.", err)
 }
