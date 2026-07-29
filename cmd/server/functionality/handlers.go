@@ -265,12 +265,12 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
-	type response struct {
-		Message string `json:"reply"`
-	}
 	if r.Method != http.MethodPost {
 		respondWithError(w, http.StatusMethodNotAllowed, "Access forbidden", nil)
 		return
+	}
+	type response struct {
+		Message string `json:"reply"`
 	}
 	respondWithJSON(w, 200, response{
 		Message: "Executing server restart.",
@@ -278,21 +278,13 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 	if flusher, ok := w.(http.Flusher); ok {
 		flusher.Flush()
 	}
+
 	go func() {
-		time.Sleep(time.Millisecond * 500)
-		cmd := exec.Command("nohup", "/bin/bash", "./update.sh")
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Setsid:  true,
-			Setpgid: true,
-		}
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Start(); err != nil {
-			log.Printf("Failed to start update: %v", err)
-			return
-		}
-		if err := cmd.Process.Release(); err != nil {
-			log.Printf("Failed to release process: %v", err)
+		time.Sleep(100 * time.Millisecond)
+
+		// Execute update completely detached
+		if err := runUpdateDetached(); err != nil {
+			log.Printf("Update failed: %v", err)
 		}
 	}()
 
@@ -300,4 +292,23 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second)
 		log.Fatal("Shutting down for update...")
 	}()
+}
+
+func runUpdateDetached() error {
+	cmd := exec.Command("/bin/bash", "./update.sh")
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setsid:  true,
+		Setpgid: true,
+	}
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start: %v", err)
+	}
+
+	if err := cmd.Process.Release(); err != nil {
+		return fmt.Errorf("failed to release: %v", err)
+	}
+
+	return nil
 }
