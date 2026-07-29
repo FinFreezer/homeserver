@@ -220,6 +220,9 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 			return nil
 		}
 		for _, entry := range mediaEntryList {
+			if episode > lastEp {
+				episode = 1
+			}
 			infoStr := fmt.Sprintf("Episode %d", episode)
 			urlPath, err := url.Parse(streamingPath + (cleanPath(dir+"/"+entry.Name(), a.CurrentRoot)))
 			if err != nil {
@@ -231,11 +234,7 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 					infoStr, urlPath.String(),
 				)
 				playlist.Write([]byte(toWrite))
-				if episode > lastEp {
-					episode = 1
-				} else {
-					episode += 1
-				}
+				episode += 1
 			}
 		}
 		playlist.Seek(0, 0)
