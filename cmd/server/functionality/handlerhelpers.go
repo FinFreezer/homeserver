@@ -207,6 +207,7 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 	playlist.Write([]byte("#PLAYLIST: Streaming\n"))
 	if dirStat.IsDir() {
 		entryList, err := os.ReadDir(dir)
+		entryList = moveEpisodeToStart(entryList, startFrom)
 		if err != nil {
 			log.Println(err)
 			return nil
@@ -257,4 +258,17 @@ func cleanPath(internal string, currentRoot string) string {
 	log.Printf("Moving %s to match %s", newPath, relativeRoot)
 	pathToReturn := strings.ReplaceAll(newPath, relativeRoot, "")
 	return pathToReturn
+}
+
+func moveEpisodeToStart(files []os.DirEntry, firstEp string) []os.DirEntry {
+	firstIdx := 0
+	newFiles := []os.DirEntry{}
+	for i, file := range files {
+		if strings.Contains(file.Name(), firstEp) {
+			firstIdx = i
+		}
+	}
+	newFiles = append(newFiles, files[firstIdx:]...)
+	newFiles = append(newFiles, files[:firstIdx]...)
+	return newFiles
 }
