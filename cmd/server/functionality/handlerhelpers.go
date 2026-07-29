@@ -207,12 +207,11 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 	playlist.Write([]byte("#PLAYLIST: Streaming\n"))
 	if dirStat.IsDir() {
 		entryList, err := os.ReadDir(dir)
-		entryList = moveEpisodeToStart(entryList, startFrom)
+		entryList, episode := moveEpisodeToStart(entryList, startFrom)
 		if err != nil {
 			log.Println(err)
 			return nil
 		}
-		episode := 1
 		for _, entry := range entryList {
 			infoStr := fmt.Sprintf("Episode %d", episode)
 			urlPath, err := url.Parse(streamingPath + (cleanPath(dir+"/"+entry.Name(), a.CurrentRoot)))
@@ -260,7 +259,7 @@ func cleanPath(internal string, currentRoot string) string {
 	return pathToReturn
 }
 
-func moveEpisodeToStart(files []os.DirEntry, firstEp string) []os.DirEntry {
+func moveEpisodeToStart(files []os.DirEntry, firstEp string) ([]os.DirEntry, int) {
 	firstIdx := 0
 	newFiles := []os.DirEntry{}
 	for i, file := range files {
@@ -270,5 +269,5 @@ func moveEpisodeToStart(files []os.DirEntry, firstEp string) []os.DirEntry {
 	}
 	newFiles = append(newFiles, files[firstIdx:]...)
 	newFiles = append(newFiles, files[:firstIdx]...)
-	return newFiles
+	return newFiles, firstIdx + 1
 }
