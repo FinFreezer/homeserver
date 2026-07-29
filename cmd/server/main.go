@@ -46,6 +46,7 @@ func main() {
 	newMux.HandleFunc("GET /listdir/{path...}", newApiConf.ListContents)
 	newMux.HandleFunc("GET /stream/{path...}", newApiConf.StreamVideo)
 	newMux.HandleFunc("PUT /cd", newApiConf.MoveRootDirectory)
+	newMux.HandleFunc("POST /remoteUpdate", newApiConf.UpdateAndRestart)
 	//newServer := http.Server{Addr: ":8080", Handler: newMux}
 	newServer := http.FileServer(http.Dir("./cmd/server"))
 	newMux.Handle("/", newServer)

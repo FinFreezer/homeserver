@@ -115,6 +115,13 @@ func initCommands() {
 		desc: `Changes the root folder for commands within the server. 'cd ..' 
 		to go up a directory. cd {pathToSubfolder/a/b...} to go down a directory.`,
 	}
+	commands["update"] = Command{
+		fun:           remoteUpdate,
+		requiresLogin: true,
+		name:          "update",
+		desc: `Runs a remote script that updates the server to the newest version,
+		and restarts it on the host machine.`,
+	}
 }
 
 func initLogin(reader *bufio.Reader) *c.UserConfig {

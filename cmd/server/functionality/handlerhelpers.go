@@ -208,6 +208,7 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 	if dirStat.IsDir() {
 		entryList, err := os.ReadDir(dir)
 		entryList, episode := moveEpisodeToStart(entryList, startFrom)
+		lastEp := len(entryList)
 		if err != nil {
 			log.Println(err)
 			return nil
@@ -226,7 +227,11 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 						infoStr, urlPath.String(),
 					)
 					playlist.Write([]byte(toWrite))
-					episode += 1
+					if episode > lastEp {
+						episode = 1
+					} else {
+						episode += 1
+					}
 				}
 			}
 		}
@@ -270,4 +275,27 @@ func moveEpisodeToStart(files []os.DirEntry, firstEp string) ([]os.DirEntry, int
 	newFiles = append(newFiles, files[firstIdx:]...)
 	newFiles = append(newFiles, files[:firstIdx]...)
 	return newFiles, firstIdx + 1
+}
+
+func servePlaylist(w http.ResponseWriter, fullPath string, a *ApiConfig) {
+	fi, err := os.Stat(fullPath)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, 400, "Couldn't reach target.\n", err)
+		return
+	}
+	if fi.IsDir() {
+		respondWithError(w, 400, "Can't stream a directory.\n", err)
+		return
+	}
+	if playlist := createDefaultPlaylist(fullPath, a); playlist != nil {
+		defer playlist.Close()
+		log.Println("Responding with a playlist.")
+		w.Header().Set("Content-Type", "audio/x-mpegurl")
+		w.Header().Set("Content-Disposition", "inline; filename=\"playlist.m3u\"")
+		w.WriteHeader(200)
+		io.Copy(w, playlist)
+		return
+	}
+	respondWithError(w, 400, "Unable to reach target.", err)
 }

@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
-	"strconv"
-	"strings"
-
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
@@ -263,25 +263,27 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func servePlaylist(w http.ResponseWriter, fullPath string, a *ApiConfig) {
-	fi, err := os.Stat(fullPath)
+func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		Message string `json:"reply"`
+	}
+	if r.Method != http.MethodPost {
+		respondWithError(w, http.StatusMethodNotAllowed, "Access forbidden", nil)
+		return
+	}
+	cmd := exec.Command("/bin/bash", "../../../updateserver.sh")
+	err := cmd.Run()
 	if err != nil {
-		log.Println(err)
-		respondWithError(w, 400, "Couldn't reach target.\n", err)
+		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
 		return
 	}
-	if fi.IsDir() {
-		respondWithError(w, 400, "Can't stream a directory.\n", err)
-		return
-	}
-	if playlist := createDefaultPlaylist(fullPath, a); playlist != nil {
-		defer playlist.Close()
-		log.Println("Responding with a playlist.")
-		w.Header().Set("Content-Type", "audio/x-mpegurl")
-		w.Header().Set("Content-Disposition", "inline; filename=\"playlist.m3u\"")
-		w.WriteHeader(200)
-		io.Copy(w, playlist)
-		return
-	}
-	respondWithError(w, 400, "Unable to reach target.", err)
+	respondWithJSON(w, 200, response{
+		Message: "Executing server restart.",
+	})
+	go func() {
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
+		log.Fatal("Shutting down for update...")
+	}()
 }
