@@ -271,18 +271,12 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusMethodNotAllowed, "Access forbidden", nil)
 		return
 	}
-	cmd := exec.Command("/bin/bash", "./update.sh")
-	err := cmd.Start()
+	go func() {
+		cmd := exec.Command("nohup", "/bin/bash", "./update.sh")
+		cmd.Run()
+	}()
 
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
-		return
-	}
-	err = cmd.Wait()
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
-		return
-	}
+	time.Sleep(time.Millisecond * 100)
 	respondWithJSON(w, 200, response{
 		Message: "Executing server restart.",
 	})
