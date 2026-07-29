@@ -184,7 +184,7 @@ func readContentType(f *os.File) (string, error) {
 }
 
 func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
-	log.Printf("Creating a playlist with current directory of %s, and path %s", a.CurrentRoot, path)
+	log.Printf("Creating a playlist with current directory for %s", path)
 	streamingPath := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/stream/"
 	startFrom := filepath.Base(path)
 	log.Printf("Start from episode '%s'\n", startFrom)
