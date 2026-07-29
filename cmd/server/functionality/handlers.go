@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
@@ -295,12 +294,7 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 }
 
 func runUpdateDetached() error {
-	cmd := exec.Command("/bin/bash", "./update.sh")
-
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid:  true,
-		Setpgid: true,
-	}
+	cmd := exec.Command("nohup", "/bin/bash", "./update.sh", "&")
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start: %v", err)
