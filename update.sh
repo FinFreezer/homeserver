@@ -5,7 +5,7 @@ sleep 2
 
 echo "=== Starting update process ==="
 echo "Killing old server..."
-pkill -e -f 
+pkill -e -f server
 
 sleep 2
 
