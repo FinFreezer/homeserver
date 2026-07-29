@@ -294,7 +294,8 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 }
 
 func runUpdateDetached() error {
-	cmd := exec.Command("nohup", "/bin/bash", "./update.sh", "&")
+	cmd := exec.Command("bash", "-c", "nohup ./localupdate.sh > update.log 2>&1 &")
+	cmd.Dir = "."
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start: %v", err)

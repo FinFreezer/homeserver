@@ -5,11 +5,13 @@ sleep 2
 
 echo "=== Starting update process ==="
 echo "Killing old server..."
+pkill -e -f 
 
 sleep 2
 
 echo "Pulling latest changes..."
 git pull origin main
+git reset --hard origin/main
 sleep 1
 
 echo "Starting new server..."
