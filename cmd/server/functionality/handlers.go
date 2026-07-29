@@ -273,6 +273,12 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 	}
 	cmd := exec.Command("/bin/bash", "./update.sh")
 	err := cmd.Start()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
+		return
+	}
+	err = cmd.Wait()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
 		return
@@ -280,10 +286,8 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, response{
 		Message: "Executing server restart.",
 	})
-	go func() {
-		if flusher, ok := w.(http.Flusher); ok {
-			flusher.Flush()
-		}
-		log.Fatal("Shutting down for update...")
-	}()
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	log.Fatal("Shutting down for update...")
 }
