@@ -1,13 +1,18 @@
 #!/bin/bash
 
 # Update script
-echo "Starting update..."
+sleep 2
 
-sleep 5
+echo "=== Starting update process ==="
+echo "Killing old server..."
 
-# Pull latest changes
+sleep 2
+
+echo "Pulling latest changes..."
 git pull origin main
+sleep 1
 
-sleep 5
-# Restart server, use terminal variables.
-exec ./server.sh {name} {password}
+echo "Starting new server..."
+# Use exec to replace the script process with the server
+# This keeps output in the same terminal
+exec ./server.sh name password

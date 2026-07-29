@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/finfreezer/homeserver/internal/auth"
@@ -271,17 +272,32 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusMethodNotAllowed, "Access forbidden", nil)
 		return
 	}
-	go func() {
-		cmd := exec.Command("nohup", "/bin/bash", "./update.sh")
-		cmd.Run()
-	}()
-
-	time.Sleep(time.Millisecond * 100)
 	respondWithJSON(w, 200, response{
 		Message: "Executing server restart.",
 	})
 	if flusher, ok := w.(http.Flusher); ok {
 		flusher.Flush()
 	}
-	log.Fatal("Shutting down for update...")
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		cmd := exec.Command("nohup", "/bin/bash", "./update.sh")
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setsid:  true,
+			Setpgid: true,
+		}
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Start(); err != nil {
+			log.Printf("Failed to start update: %v", err)
+			return
+		}
+		if err := cmd.Process.Release(); err != nil {
+			log.Printf("Failed to release process: %v", err)
+		}
+	}()
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		log.Fatal("Shutting down for update...")
+	}()
 }
