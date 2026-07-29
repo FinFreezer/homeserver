@@ -207,13 +207,19 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 	playlist.Write([]byte("#PLAYLIST: Streaming\n"))
 	if dirStat.IsDir() {
 		entryList, err := os.ReadDir(dir)
-		entryList, episode := moveEpisodeToStart(entryList, startFrom)
-		lastEp := len(entryList)
+		mediaEntryList := []os.DirEntry{}
+		for _, entry := range entryList {
+			if isValidType(entry.Name()) {
+				mediaEntryList = append(mediaEntryList, entry)
+			}
+		}
+		mediaEntryList, episode := moveEpisodeToStart(mediaEntryList, startFrom)
+		lastEp := len(mediaEntryList)
 		if err != nil {
 			log.Println(err)
 			return nil
 		}
-		for _, entry := range entryList {
+		for _, entry := range mediaEntryList {
 			infoStr := fmt.Sprintf("Episode %d", episode)
 			urlPath, err := url.Parse(streamingPath + (cleanPath(dir+"/"+entry.Name(), a.CurrentRoot)))
 			if err != nil {
@@ -221,17 +227,14 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 				return nil
 			}
 			if !entry.IsDir() {
-				if isValidType(entry.Name()) {
-
-					toWrite := fmt.Sprintf("#EXTINF:-1,%s\n%s\n",
-						infoStr, urlPath.String(),
-					)
-					playlist.Write([]byte(toWrite))
-					if episode > lastEp {
-						episode = 1
-					} else {
-						episode += 1
-					}
+				toWrite := fmt.Sprintf("#EXTINF:-1,%s\n%s\n",
+					infoStr, urlPath.String(),
+				)
+				playlist.Write([]byte(toWrite))
+				if episode > lastEp {
+					episode = 1
+				} else {
+					episode += 1
 				}
 			}
 		}
