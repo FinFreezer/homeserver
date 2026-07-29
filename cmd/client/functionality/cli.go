@@ -120,7 +120,8 @@ func initCommands() {
 		requiresLogin: true,
 		name:          "update",
 		desc: `Runs a remote script that updates the server to the newest version,
-		and restarts it on the host machine.`,
+		and restarts it on the host machine. Note that you must modify the script on the
+		host machine to include the right log-in credentials.`,
 	}
 }
 

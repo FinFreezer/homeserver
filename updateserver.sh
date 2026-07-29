@@ -7,4 +7,4 @@ echo "Starting update..."
 git pull origin main
 
 # Restart server, use terminal variables.
-./server.sh $1 $2
+./server.sh {name} {password}
