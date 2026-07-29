@@ -271,8 +271,8 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusMethodNotAllowed, "Access forbidden", nil)
 		return
 	}
-	cmd := exec.Command("/bin/bash", "../../../updateserver.sh")
-	err := cmd.Run()
+	cmd := exec.Command("/bin/bash", "./update.sh")
+	err := cmd.Start()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Problem executing update script.", err)
 		return

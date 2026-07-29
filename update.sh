@@ -6,5 +6,8 @@ echo "Starting update..."
 # Pull latest changes
 git pull origin main
 
+pkill -e server
+
+sleep 5
 # Restart server, use terminal variables.
-./server.sh {name} {password}
+exec ./server.sh {name} {password}
