@@ -313,21 +313,25 @@ func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
 	log.Println("Sorting files..")
 	fileMap := make(map[int]os.DirEntry)
 	fileNumbers := []int{}
+	unNumberedFiles := []os.DirEntry{}
 	for _, file := range files {
 		fileNumber, err := findFileNumber(file.Name())
 		if err != nil {
 			log.Printf("Error sorting files: %s", err)
 			return files
 		}
+		if fileNumber == -1 {
+			unNumberedFiles = append(unNumberedFiles, file)
+		}
 		fileMap[fileNumber] = file
 		fileNumbers = append(fileNumbers, fileNumber)
 	}
-	return sortFileSlice(fileMap, fileNumbers)
+	return append(sortFileSlice(fileMap, fileNumbers), unNumberedFiles...)
 }
 
 func findFileNumber(filename string) (int, error) {
-	numberStart := 0
-	numberEnd := 0
+	numberStart := -1
+	numberEnd := -1
 	for i, char := range filename {
 		if unicode.IsNumber(char) {
 			numberStart = i
@@ -339,6 +343,9 @@ func findFileNumber(filename string) (int, error) {
 			numberEnd = numberStart + i
 			break
 		}
+	}
+	if numberStart == -1 || numberEnd == -1 {
+		return -1, nil
 	}
 	log.Printf("Number '%s' found for file %s.\n", filename[numberStart:numberEnd], filename)
 	return strconv.Atoi(filename[numberStart:numberEnd])
