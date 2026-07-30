@@ -327,8 +327,9 @@ func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
 				fileMap[fileNumber] = file
 			} else {
 				for i := range 999 {
-					if _, ok := fileMap[fileNumber+i]; !ok {
-						fileMap[fileNumber+i] = file
+					fileNumber += i
+					if _, ok := fileMap[fileNumber]; !ok {
+						fileMap[fileNumber] = file
 						break
 					}
 				}
