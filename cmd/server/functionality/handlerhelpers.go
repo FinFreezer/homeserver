@@ -329,9 +329,9 @@ func findFileNumber(filename string) (int, error) {
 			numberStart = i
 		}
 	}
-	for i, char := range filename[numberStart:] {
+	for i, char := range filename[numberStart+1:] {
 		if !unicode.IsNumber(char) {
-			numberEnd = i
+			numberEnd = i - 1
 		}
 	}
 	log.Printf("Number %s found for file %s.\n", filename[numberStart:numberEnd+1], filename)
