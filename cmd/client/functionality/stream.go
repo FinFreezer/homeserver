@@ -1,9 +1,9 @@
 package functionality
 
 import (
-	"log"
-	//"net/http"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -78,7 +78,7 @@ func getMediaPlayer(pathToStream string) error {
 		}
 		return err
 	default:
-		log.Println("Unsupported environment.")
+		fmt.Println("Unsupported environment.")
 		return errors.New("Unsupported runtime environment.")
 	}
 }

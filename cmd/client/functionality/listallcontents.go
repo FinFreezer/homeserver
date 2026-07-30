@@ -35,7 +35,6 @@ func listAllContents(cfg *c.UserConfig) bool {
 			"/listdir/" + fullPath + "?dirOnly=false" + "&recDepth=99"
 	}
 
-	log.Printf("Making a GET request to %s\n", fullUrl)
 	resp, err := http.Get(fullUrl)
 	if err != nil {
 		log.Println(err)

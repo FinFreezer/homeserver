@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	//"net/http"
 	"os"
 
 	c "github.com/finfreezer/homeserver/internal/config"

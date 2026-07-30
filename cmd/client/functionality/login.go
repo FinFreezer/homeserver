@@ -3,6 +3,7 @@ package functionality
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,7 +39,6 @@ func login(cfg *c.UserConfig) bool {
 		return false
 	}
 	fullUrl := os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") + "/login"
-	log.Printf("Making a POST request to %s with Tokenstatus: %v\n", fullUrl, params.WithToken)
 	resp, err := http.Post(fullUrl, "application/json", bytes.NewReader(rqst))
 	if err != nil {
 		log.Println(err)
@@ -52,7 +52,7 @@ func login(cfg *c.UserConfig) bool {
 		return false
 	}
 	if 200 <= resp.StatusCode && resp.StatusCode < 300 {
-		log.Printf("%s", reply.Message)
+		fmt.Printf("%s\n", reply.Message)
 		cfg.Token = reply.Token
 		cfg.Authorized = true
 		if cfg.Token != "" {
@@ -63,7 +63,7 @@ func login(cfg *c.UserConfig) bool {
 		}
 		return true
 	} else {
-		log.Printf("%s", reply.Error)
+		fmt.Printf("%s\n", reply.Error)
 		cfg.Authorized = false
 		return false
 	}
