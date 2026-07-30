@@ -327,14 +327,16 @@ func findFileNumber(filename string) (int, error) {
 	for i, char := range filename {
 		if unicode.IsNumber(char) {
 			numberStart = i
+			break
 		}
 	}
 	for i, char := range filename[numberStart:] {
 		if !unicode.IsNumber(char) {
 			numberEnd = numberStart + i
+			break
 		}
 	}
-	log.Printf("Number %s found for file %s.\n", filename[numberStart:numberEnd], filename)
+	log.Printf("Number '%s' found for file %s.\n", filename[numberStart:numberEnd], filename)
 	return strconv.Atoi(filename[numberStart:numberEnd])
 }
 
