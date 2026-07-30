@@ -322,9 +322,11 @@ func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
 		}
 		if fileNumber == -1 {
 			unNumberedFiles = append(unNumberedFiles, file)
+		} else {
+			fileMap[fileNumber] = file
+			fileNumbers = append(fileNumbers, fileNumber)
 		}
-		fileMap[fileNumber] = file
-		fileNumbers = append(fileNumbers, fileNumber)
+
 	}
 	return append(sortFileSlice(fileMap, fileNumbers), unNumberedFiles...)
 }
