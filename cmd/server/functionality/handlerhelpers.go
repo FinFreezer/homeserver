@@ -10,8 +10,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type FileNode struct {
@@ -213,6 +215,7 @@ func createDefaultPlaylist(path string, a *ApiConfig) *os.File {
 				mediaEntryList = append(mediaEntryList, entry)
 			}
 		}
+		mediaEntryList = sortFilesByNumber(mediaEntryList)
 		mediaEntryList, episode := moveEpisodeToStart(mediaEntryList, startFrom)
 		lastEp := len(mediaEntryList)
 		if err != nil {
@@ -300,4 +303,47 @@ func servePlaylist(w http.ResponseWriter, fullPath string, a *ApiConfig) {
 		return
 	}
 	respondWithError(w, 400, "Unable to reach target.", err)
+}
+
+func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
+	log.Println("Sorting files..")
+	fileMap := make(map[int]os.DirEntry)
+	fileNumbers := []int{}
+	for _, file := range files {
+		fileNumber, err := findFileNumber(file.Name())
+		if err != nil {
+			log.Println("Error sorting files.")
+			return files
+		}
+		fileMap[fileNumber] = file
+		fileNumbers = append(fileNumbers, fileNumber)
+	}
+	return sortFileSlice(fileMap, fileNumbers)
+}
+
+func findFileNumber(filename string) (int, error) {
+	numberStart := 0
+	numberEnd := 0
+	for i, char := range filename {
+		if unicode.IsNumber(char) {
+			numberStart = i
+		}
+	}
+	for i, char := range filename[numberStart:] {
+		if !unicode.IsNumber(char) {
+			numberEnd = i
+		}
+	}
+	log.Printf("Number %s found for file %s.\n", filename[numberStart:numberEnd+1], filename)
+	return strconv.Atoi(filename[numberStart : numberEnd+1])
+}
+
+func sortFileSlice(filemap map[int]os.DirEntry, fileslice []int) []os.DirEntry {
+	sort.Ints(fileslice)
+	sortedFiles := []os.DirEntry{}
+	for i, fileNumber := range fileslice {
+		log.Printf("Sorting %s to place %d.", filemap[fileNumber].Name(), i)
+		sortedFiles[i] = filemap[fileNumber]
+	}
+	return sortedFiles
 }

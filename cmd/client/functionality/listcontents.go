@@ -14,12 +14,10 @@ import (
 func listContents(cfg *c.UserConfig) bool {
 	fullUrl := ""
 	if len(cfg.Args) > 0 && cfg.Args[0] == "-dironly" {
-		fmt.Printf("%+v\n", cfg.Args[1:])
 		fullPath := strings.Join(cfg.Args[1:], "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
 			"/listdir/" + fullPath + "?dirOnly=true" + "&recDepth=0"
 	} else {
-		fmt.Printf("%+v\n", cfg.Args)
 		fullPath := strings.Join(cfg.Args, "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
 			"/listdir/" + fullPath + "?dirOnly=false" + "&recDepth=0"
