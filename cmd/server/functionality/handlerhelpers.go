@@ -332,6 +332,7 @@ func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
 }
 
 func findFileNumber(filename string) (int, error) {
+	log.Println("Reading file numbers...")
 	numberStart := -1
 	numberEnd := -1
 	for i, char := range filename {
@@ -340,12 +341,15 @@ func findFileNumber(filename string) (int, error) {
 			break
 		}
 	}
-	for i, char := range filename[numberStart:] {
-		if !unicode.IsNumber(char) {
-			numberEnd = numberStart + i
-			break
+	if numberStart != -1 {
+		for i, char := range filename[numberStart:] {
+			if !unicode.IsNumber(char) {
+				numberEnd = numberStart + i
+				break
+			}
 		}
 	}
+
 	if numberStart == -1 || numberEnd == -1 {
 		return -1, nil
 	}
@@ -354,6 +358,7 @@ func findFileNumber(filename string) (int, error) {
 }
 
 func sortFileSlice(filemap map[int]os.DirEntry, fileslice []int) []os.DirEntry {
+	log.Println("Sorting slice indexes...")
 	sort.Ints(fileslice)
 	sortedFiles := make([]os.DirEntry, len(fileslice))
 	for i, fileNumber := range fileslice {
