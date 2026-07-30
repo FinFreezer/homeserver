@@ -312,7 +312,7 @@ func sortFilesByNumber(files []os.DirEntry) []os.DirEntry {
 	for _, file := range files {
 		fileNumber, err := findFileNumber(file.Name())
 		if err != nil {
-			log.Println("Error sorting files.")
+			log.Printf("Error sorting files: %s", err)
 			return files
 		}
 		fileMap[fileNumber] = file
