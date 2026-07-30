@@ -24,6 +24,10 @@ type FileNode struct {
 
 func buildFileTree(fromPath string, dirOnly bool, depth int) (FileNode, error) {
 	itemList, err := os.ReadDir(fromPath)
+	if err != nil {
+		return FileNode{}, err
+	}
+	itemList = sortFilesByNumber(itemList)
 	info, err := os.Stat(fromPath)
 	if err != nil || !info.IsDir() {
 		return FileNode{Name: info.Name(), IsDir: false}, err
