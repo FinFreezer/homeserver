@@ -329,13 +329,13 @@ func findFileNumber(filename string) (int, error) {
 			numberStart = i
 		}
 	}
-	for i, char := range filename[numberStart+1:] {
+	for i, char := range filename[numberStart:] {
 		if !unicode.IsNumber(char) {
-			numberEnd = i - 1
+			numberEnd = numberStart + i
 		}
 	}
-	log.Printf("Number %s found for file %s.\n", filename[numberStart:numberEnd+1], filename)
-	return strconv.Atoi(filename[numberStart : numberEnd+1])
+	log.Printf("Number %s found for file %s.\n", filename[numberStart:numberEnd], filename)
+	return strconv.Atoi(filename[numberStart:numberEnd])
 }
 
 func sortFileSlice(filemap map[int]os.DirEntry, fileslice []int) []os.DirEntry {
