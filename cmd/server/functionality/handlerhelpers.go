@@ -342,7 +342,7 @@ func findFileNumber(filename string) (int, error) {
 
 func sortFileSlice(filemap map[int]os.DirEntry, fileslice []int) []os.DirEntry {
 	sort.Ints(fileslice)
-	sortedFiles := []os.DirEntry{}
+	sortedFiles := make([]os.DirEntry, len(fileslice))
 	for i, fileNumber := range fileslice {
 		log.Printf("Sorting %s to place %d.", filemap[fileNumber].Name(), i)
 		sortedFiles[i] = filemap[fileNumber]
