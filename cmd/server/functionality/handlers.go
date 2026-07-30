@@ -300,7 +300,7 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 
 func runUpdateDetached() error {
 	h, m, s := time.Now().Clock()
-	logFileName := fmt.Sprintf("%d-%d-%d-update.log", h, m, s)
+	logFileName := fmt.Sprintf("./logs/%02d-%02d-%02d-update.log", h, m, s)
 	cmd := exec.Command("bash", "-c", "nohup ./localupdate.sh > "+logFileName+" 2>&1 &")
 	//cmd := exec.Command("bash", "-c", "nohup ./localupdate.sh > update.log 2>&1 &")
 	cmd.Dir = "."
