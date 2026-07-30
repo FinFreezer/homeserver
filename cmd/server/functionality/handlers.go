@@ -271,6 +271,11 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		Message string `json:"reply"`
 	}
+	logsDir := "./logs"
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Cannot create logs directory", err)
+		return
+	}
 	respondWithJSON(w, 200, response{
 		Message: "Executing server restart.",
 	})
@@ -295,8 +300,8 @@ func (a *ApiConfig) UpdateAndRestart(w http.ResponseWriter, r *http.Request) {
 
 func runUpdateDetached() error {
 	h, m, s := time.Now().Clock()
-	timeStamp := fmt.Sprintf("nohup ./localupdate.sh > /logs/%d-%d-%d-update.log 2>&1 &", h, m, s)
-	cmd := exec.Command("bash", "-c", timeStamp)
+	logFileName := fmt.Sprintf("%d-%d-%d-update.log", h, m, s)
+	cmd := exec.Command("bash", "-c", "nohup ./localupdate.sh > "+logFileName+" 2>&1 &")
 	//cmd := exec.Command("bash", "-c", "nohup ./localupdate.sh > update.log 2>&1 &")
 	cmd.Dir = "."
 
