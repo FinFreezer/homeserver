@@ -162,6 +162,7 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	fi, err = os.Stat(fullPath)
 	if fi != nil && fi.IsDir() {
 		respondWithError(w, 400, "Can't stream a directory.\n", err)
 		return
@@ -274,10 +275,20 @@ func (a *ApiConfig) MoveRootDirectory(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received a request to move root to '%s'\n", newRoot)
 	fi, err := os.Stat(newRoot)
 	if err != nil {
-		respondWithError(w, 400, "Error finding new root.", err)
-		return
+		dir := filepath.Dir(filepath.Clean(newRoot))
+		dirToFind := filepath.Base(newRoot)
+		log.Printf("Finding optional matches for path %s.", dir)
+		closestMatch, err := findClosestMatch(dir, dirToFind)
+		if err != nil {
+			respondWithError(w, 400, "Error finding new root.", err)
+			return
+		} else {
+			log.Printf("Matched %s to %s", dirToFind, closestMatch)
+			newRoot = closestMatch
+		}
 	}
-	if !fi.IsDir() {
+	fi, err = os.Stat(newRoot)
+	if fi != nil && !fi.IsDir() {
 		respondWithError(w, 400, "New root must be a directory.", nil)
 		return
 	}

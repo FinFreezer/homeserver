@@ -384,7 +384,7 @@ func findClosestMatch(dirPath, fileToMatch string) (string, error) {
 		return "", err
 	}
 	for _, file := range files {
-		if strings.Contains(file.Name(), fileToMatch) {
+		if strings.Contains(strings.ToLower(file.Name()), strings.ToLower(fileToMatch)) {
 			return dirPath + "/" + file.Name(), err
 		}
 	}
