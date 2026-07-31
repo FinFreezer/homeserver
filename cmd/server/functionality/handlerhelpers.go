@@ -377,3 +377,16 @@ func sortFileSlice(filemap map[int]os.DirEntry, fileslice []int) []os.DirEntry {
 	}
 	return sortedFiles
 }
+
+func findClosestMatch(dirPath, fileToMatch string) (string, error) {
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		return "", err
+	}
+	for _, file := range files {
+		if strings.Contains(file.Name(), fileToMatch) {
+			return dirPath + "/" + file.Name(), err
+		}
+	}
+	return "", errors.New("No matching files.")
+}

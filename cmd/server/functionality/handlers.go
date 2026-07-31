@@ -144,11 +144,25 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received a request to stream path %s\n", fullPath)
 	fi, err := os.Stat(fullPath)
 	if err != nil {
-		log.Println(err)
-		respondWithError(w, 400, "Couldn't reach file.\n", err)
-		return
+		dir := filepath.Dir(fullPath)
+		if dirStat, err := os.Stat(dir); dirStat.IsDir() && err == nil {
+			log.Println("Looking for closest match.")
+			fileToMatch := filepath.Base(fullPath)
+			closestMatch, err := findClosestMatch(dir, fileToMatch)
+			log.Printf("Matched %s to %s.\n", fileToMatch, closestMatch)
+			if err != nil {
+				log.Println(err)
+				respondWithError(w, 400, "Couldn't reach file or directory.\n", err)
+				return
+			}
+			fullPath = closestMatch
+		} else {
+			log.Println(err)
+			respondWithError(w, 400, "Couldn't reach file or directory.\n", err)
+			return
+		}
 	}
-	if fi.IsDir() {
+	if fi != nil && fi.IsDir() {
 		respondWithError(w, 400, "Can't stream a directory.\n", err)
 		return
 	}
