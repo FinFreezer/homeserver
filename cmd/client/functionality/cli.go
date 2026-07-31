@@ -94,7 +94,8 @@ func initCommands() {
 		desc: `Opens a data stream of the desired content in VLC.
 		Current use 'stream {path/to/file.png}', opening a browser stream by default. Optional flags include '-f' for playing single files,
 		'-b' to open the target in a browser, and '-a' to receive a playlist of the target folder, recommended
-		for usage with media players. 'stream {-a|-b|-f} {path/to/file.png}`,
+		for usage with media players. To request a response with a link to a playlist instead of being redirected
+		directly to a media player, use the '-po' (playlist only) flag. 'stream {-a|-b|-f|-po} {path/to/file.png}`,
 	}
 	commands["quit"] = Command{
 		fun:           quitClient,

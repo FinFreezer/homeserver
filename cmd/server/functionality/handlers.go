@@ -137,6 +137,9 @@ func (a *ApiConfig) ListContents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
+	type Response struct {
+		Message string `json:"reply"`
+	}
 	fullPath := a.CurrentRoot + r.PathValue("path")
 	log.Printf("Received a request to stream path %s\n", fullPath)
 	fi, err := os.Stat(fullPath)
@@ -147,6 +150,13 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	if fi.IsDir() {
 		respondWithError(w, 400, "Can't stream a directory.\n", err)
+		return
+	}
+	if sendPlaylist := r.URL.Query().Get("playlist"); sendPlaylist == "only" {
+		respondWithJSON(w, 200,
+			Response{
+				Message: strings.ReplaceAll(r.URL.String(), "playlist=only", "playlist=true")},
+		)
 		return
 	}
 	if sendPlaylist := r.URL.Query().Get("playlist"); sendPlaylist == "true" {
