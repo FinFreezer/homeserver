@@ -29,6 +29,11 @@ func listAllContents(cfg *c.UserConfig) bool {
 		fullPath := strings.Join(cfg.Args[1:], "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
 			"/listdir/" + fullPath + "?dirOnly=true" + "&recDepth=99"
+	} else if len(cfg.Args) > 1 && cfg.Args[0] == "-d" {
+		fullPath := strings.Join(cfg.Args[2:], "%20")
+		recDepth := cfg.Args[1]
+		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +
+			"/listdir/" + fullPath + "?dirOnly=false" + "&recDepth=" + recDepth
 	} else {
 		fullPath := strings.Join(cfg.Args, "%20")
 		fullUrl = os.Getenv("DST_SERVER") + os.Getenv("DFLT_PORT") +

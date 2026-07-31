@@ -69,7 +69,8 @@ func initCommands() {
 		desc: `Lists all the files and subdirectories starting from the working directory,
 		up to a depth of 99 branches. With the -dirOnly flag, skips displaying files.
 		Additional arguments can be given to change the 'root' of the displayed tree.
-		Starts from current working directory by default. 'listall {-dironly} {pathToRoot}'`,
+		Starts from current working directory by default. 'listall {-dironly} {pathToRoot}'
+		Alternatively you can set the depth of the listing with 'listall {-d} {num} {pathToRoot}'.`,
 	}
 	commands["list"] = Command{
 		fun:           listContents,
