@@ -140,7 +140,7 @@ func (a *ApiConfig) StreamVideo(w http.ResponseWriter, r *http.Request) {
 	type Response struct {
 		Message string `json:"reply"`
 	}
-	fullPath := a.CurrentRoot + r.PathValue("path")
+	fullPath := filepath.Join(a.CurrentRoot, r.PathValue("path"))
 	log.Printf("Received a request to stream path %s\n", fullPath)
 	fi, err := os.Stat(fullPath)
 	if err != nil {

@@ -96,7 +96,8 @@ func initCommands() {
 		Current use 'stream {path/to/file.png}', opening a browser stream by default. Optional flags include '-f' for playing single files,
 		'-b' to open the target in a browser, and '-a' to receive a playlist of the target folder, recommended
 		for usage with media players. To request a response with a link to a playlist instead of being redirected
-		directly to a media player, use the '-po' (playlist only) flag. 'stream {-a|-b|-f|-po} {path/to/file.png}`,
+		directly to a media player, use the '-po' (playlist only) flag. 'stream {-a|-b|-f|-po} {path/to/file.png}.
+		Uses basic pattern matching, so partial filenames will return the closest match.`,
 	}
 	commands["quit"] = Command{
 		fun:           quitClient,
@@ -115,7 +116,9 @@ func initCommands() {
 		requiresLogin: true,
 		name:          "cd",
 		desc: `Changes the root folder for commands within the server. 'cd ..' 
-		to go up a directory. cd {pathToSubfolder/a/b...} to go down a directory.`,
+		to go up a directory. cd {pathToSubfolder/a/b...} to go down a directory.
+		Uses pattern basic pattern matching, so 'cd vid' will locate the closest matching directory
+		if no direct matches are found, such as 'Videos', case insensitive.`,
 	}
 	commands["update"] = Command{
 		fun:           remoteUpdate,
