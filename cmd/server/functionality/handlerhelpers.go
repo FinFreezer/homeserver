@@ -22,12 +22,15 @@ type FileNode struct {
 	Children []FileNode `json:"children,omitempty"`
 }
 
+type FileGroup map[string][]os.DirEntry
+
 func buildFileTree(fromPath string, dirOnly bool, depth int) (FileNode, error) {
 	itemList, err := os.ReadDir(fromPath)
 	if err != nil {
 		return FileNode{}, err
 	}
-	itemList = sortFilesByNumber(itemList)
+	//itemList = sortFilesByNumber(itemList)
+	itemList = doubleSort(itemList)
 	info, err := os.Stat(fromPath)
 	if err != nil || !info.IsDir() {
 		return FileNode{Name: info.Name(), IsDir: false}, err
@@ -389,4 +392,32 @@ func findClosestMatch(dirPath, fileToMatch string) (string, error) {
 		}
 	}
 	return "", errors.New("No matching files.")
+}
+
+func groupFilesByFirstChar(files []os.DirEntry) map[string][]os.DirEntry {
+	groupMap := make(map[string][]os.DirEntry)
+	for _, file := range files {
+		firstLetter := strings.ToLower(string(file.Name()[0]))
+		if _, ok := groupMap[firstLetter]; !ok {
+			groupMap[firstLetter] = []os.DirEntry{file}
+		} else {
+			groupMap[firstLetter] = append(groupMap[firstLetter], file)
+		}
+	}
+	return groupMap
+}
+
+func doubleSort(files []os.DirEntry) []os.DirEntry {
+	groupMap := groupFilesByFirstChar(files)
+	keySlice := []string{}
+	overallFileSlice := []os.DirEntry{}
+	for key := range groupMap {
+		keySlice = append(keySlice, key)
+	}
+	sort.Strings(keySlice)
+
+	for _, key := range keySlice {
+		overallFileSlice = append(overallFileSlice, sortFilesByNumber(groupMap[key])...)
+	}
+	return overallFileSlice
 }
